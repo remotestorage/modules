@@ -14,13 +14,30 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
           }
         });
       },
-    
-      getContacts: function() {
-        return privateClient.getAll('');
+      get: function(prefixChars) {
+        var dir;
+        if(prefixChars.length) {
+          dir = prefixChars.join('/').'/';
+        } else {
+          dir = '';
+        }
+        return privateClient.getAll(dir);
       },
-
-      addContact: function(platform, address, data) {
-        return privateClient.storeObject('contact', platform+'/'+address, data);
+      add: function(platform, identifier, name) {
+        var searchTerms = name.split(' ');
+        for(var i=0; i<searchTerms.length; i++) {
+          var obj = {
+            platform: platform,
+            identifier: identifier,
+            name: name
+          },
+            path = '';
+          for(var j=0; j<searchTerms[i].length; j++) {
+            path += searchTerms[i][j]+'/';
+          }
+          path += platform+'%20'+identifier;
+          privateClient.storeObject('contact', path, obj);
+        }
       }
     }
   };
