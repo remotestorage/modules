@@ -19,8 +19,12 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
         return privateClient.getAll('');
       },
 
-      addContact: function(platform, address, data) {
-        return privateClient.storeObject('contact', platform+'/'+address, data);
+      addContact: function(platform, identifier, name) {
+        return privateClient.storeObject('contact', platform+'/'+identifier, {
+          platform: platform,
+          identifier: identifier,
+          name: name
+        });
       }
     }
   };
