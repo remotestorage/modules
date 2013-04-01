@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  </head>
+  <body>
+  </body>
+  <script src="http://remotestoragejs.com/release/0.7.1/remoteStorage.min.js"></script>
+  <script src="../messages.js"></script>
+  <script>
+    remoteStorage.claimAccess('messages', 'rw').then(function() {
+      remoteStorage.displayWidget();
+      remoteStorage.messages.log('asdf@example.com', 'qwer@example.com', 'ping').then(function() {
+        remoteStorage.messages.log('qwer@example.com', 'asdf@example.com', 'pong').then(function() {
+          remoteStorage.messages.getContactsByRecency().then(function(list) {
+            console.log(list);
+          });
+        });
+      });
+    });
+  </script>
+</html>

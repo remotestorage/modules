@@ -16,10 +16,12 @@ remoteStorage.defineModule('messages', function(privateClient, publicClient) {
             from: { type: 'useraddress', description: 'the sender', required: true },
             to: { type: 'useraddress or [useraddress]', description: 'the recipients. apart from mailto:, we invent mailcc:, mailbcc: to express CC\'s and BCC\'s', required: true },
             text: { type: 'utf-8 string', description: 'human-readable message', required: true },
-            previous: { type: 'map', properties: {
-              key: 'useraddress',
-              type: 'timestamp',
-              description: 'Previous message involving that contact'
+            previous: { type: 'map',
+              properties: {
+                key: 'useraddress',
+                type: 'timestamp',
+                description: 'Previous message involving that contact'
+              }
             }
           }
         });
