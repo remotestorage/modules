@@ -1,8 +1,15 @@
 remoteStorage.defineModule('messages', function(privateClient, publicClient) {
   function storeLast(userAddress, now) {
-    privateClient.storeObject('last/'+userAddress, {
+    privateClient.storeObject('last-message', 'last/'+userAddress, {
       timestamp: now
     });
+  }
+  function timestampToPath(timestamp) {
+    timestamp = ''+timestamp;
+    console.log(timestamp);
+    var Ms = timestamp.substr(0,4),
+        ks = timestamp.substr(4,3);
+    return Ms+'/'+ks+'/'+timestamp.substr(7);
   }
   return {
     exports: {
@@ -58,9 +65,11 @@ remoteStorage.defineModule('messages', function(privateClient, publicClient) {
             text: text,
             previous: {}
           };
-        return privateClient.getObject('last/'+from).then(function(lastSeenFrom) {        
-          previous[from] = lastSeenFrom.timestamp;//TODO: same for to: addresses
-          return privateClient.storeObject('messages/'+timeToPath(now), obj).then(function() {
+        return privateClient.getObject('last/'+from).then(function(lastSeenFrom) {
+          if(lastSeenFrom) {
+            obj.previous[from] = lastSeenFrom.timestamp;
+          }//TODO: same for to: addresses
+          return privateClient.storeObject('message', 'messages/'+timestampToPath(now), obj).then(function() {
             storeLast(from);
             for(var i=0; i<to.length; i++) {
               storeLast(to[i], now);
