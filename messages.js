@@ -49,16 +49,21 @@ remoteStorage.defineModule('messages', function(privateClient, publicClient) {
       },
     
       log: function(from, to, text) {
-        var now = new Date().getTime();
-        return privateClient.storeObject('messages/'+timeToPath(now), {
-          from: from, 
-          to: to,
-          text: text
-        }).then(function() {
-          storeLast(from);
-          for(var i=0; i<to.length; i++) {
-            storeLast(to[i], now);
-          }
+        var now = new Date().getTime(),
+          obj = {
+            from: from, 
+            to: to,
+            text: text,
+            previous: {}
+          };
+        return privateClient.getObject('last/'+from).then(function(lastSeenFrom) {        
+          previous[from] = lastSeenFrom.timestamp;//TODO: same for to: addresses
+          return privateClient.storeObject('messages/'+timeToPath(now), obj).then(function() {
+            storeLast(from);
+            for(var i=0; i<to.length; i++) {
+              storeLast(to[i], now);
+            }
+          });
         });
       }
     }
