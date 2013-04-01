@@ -15,8 +15,28 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
         });
       },
 
-      getContacts: function(platform) {
+      getContactsByPlatform: function(platform) {
+        return privateClient.getAll('platform/'+platform+'/');
+      },
+
+      insertSeen: function(userAddress) {
+        var oldSeen = getObject('seen/address/'+userAddress).seen;
+        storeObject('seen/address/'+userAddress).seen, now);
+        storeObject('seen/time/'+Ms+ks+ms, userAddress);
+        removeObject('seen/time/'+MsOld+ksOld+msOld);
+      },
+      
+      getContactsByRecency: function(endTime, maxNo) {//timestamp, previous (rehang). paged?
+        //we could do megasecond/kilosecond/item, and then find and delete the old one.
         return privateClient.getAll(platform+'/');
+      },
+
+      getContactsByPrefix: function(prefix) {
+        if(prefix.length==3) {
+          return privateClient.getAll('prefix/'+prefix+'/');
+        } else {
+          //...
+        }
       },
 
       addContact: function(platform, identifier, name) {
