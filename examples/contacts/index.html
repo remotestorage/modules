@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="http://remotestoragejs.com/build/0.7.0-head/remotestorage-debug.js"></script>
+    <script src="../../contacts.js"></script>
+    <script src="lunr.js"></script>
+    <script src="app.js"></script>
+  </head>
+  <body>
+    <h1>Contacts</h1>
+    <hr>
+    <h2>Find</h2>
+    <input id="search-box" type="text" name="query" placeholder="Find...">
+    <ul id="results">
+    </ul>
+    <hr>
+    <h2>Add / Remove</h2>
+    <form id="add-form">
+      <input type="text" name="fn" placeholder="Full Name">
+      <input type="submit" value="Save">
+    </form>
+    <ul id="all">
+    </ul>
+  </body>
+</html>
