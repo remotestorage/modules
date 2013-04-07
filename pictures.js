@@ -18,7 +18,10 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     this.prefix = encodeURIComponent(this.name) + '/';
 
     // Sync all picture names, but not the pictures themselves.
-    this.client.use(this.prefix, true);
+    // this.client.use(this.prefix, true);
+
+    // Bind all the things
+    remoteStorage.util.bindAll(this);
   };
 
   Album.prototype = {
@@ -54,7 +57,7 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     getPictureURL: function(fileName) {
       return this.client.getItemURL(this._path(fileName));
     },
-    
+
     close: function() {
       this.client.release(this.prefix);
     },
@@ -65,9 +68,6 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
 
   };
 
-  privateClient.release('');
-  publicClient.release('');
-
   function filterAlbumListing(listing) {
     var albums = [];
     listing.forEach(function(item) {
@@ -76,9 +76,14 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
       }
     });
     return albums;
-  } 
+  }
 
   var pictures = {
+
+    init: function() {
+      privateClient.release('');
+      publicClient.release('');
+    },
 
     getUuid: privateClient.uuid,
 
