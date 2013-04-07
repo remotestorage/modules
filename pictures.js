@@ -43,6 +43,10 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
       }.bind(this));
     },
 
+    remove: function(fileName) {
+      return this.client.remove(this._path(fileName));
+    },
+
     // Get a list of all pictures in this album.
     list: function() {
       return this.client.getListing(this.prefix).
