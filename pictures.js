@@ -1,5 +1,3 @@
-
-
 // Pictures
 //
 // This module stores collections of pictures, called "albums".
