@@ -10,3 +10,8 @@ after the module name.
 
 If you want to help or learn more about how modules work, just hop on the IRC
 channel and say hello: [irc://irc.freenode.net:7000/remotestorage](irc://irc.freenode.net:7000/remotestorage)
+
+### Getting your code into the master branch
+
+Just issue a pull request, and we'll jointly review the code and help each
+other making it ready for master.
