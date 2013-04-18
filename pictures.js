@@ -1,3 +1,4 @@
+//
 // Pictures
 //
 // This module stores collections of pictures, called "albums".
@@ -35,7 +36,7 @@ remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
         mimeType,
         this._path(fileName),
         data,
-        false // << skip the cache
+        false // skip the cache
       ).then(function() {
         return this.getPictureURL(fileName);
       }.bind(this));
