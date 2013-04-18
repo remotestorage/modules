@@ -171,7 +171,7 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
 
       on: privateClient.on,
 
-      all: function() {
+      getAll: function() {
         return privateClient.getListing('card/').then(function(ids) {
           return util.asyncMap(ids, function(id) {
             return privateClient.getObject('card/' + id);
