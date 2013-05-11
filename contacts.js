@@ -184,22 +184,7 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
       },
 
       add: function (contact) {
-        // // validate before indexing
-        // var validationErrors = validateObject(contact, 'http://json-schema.org/card');
-        // if(!validationErrors)
-        // {
-        //   // faily- + given + -nickname + email + uuid -> Index
-          
-          
-        //   //privateClient.storeObject("contact", "card/" + privateClient.uuid(), contact);
-        // }
-        // else
-        // {
-        //   console.log("Validation failed: ", validationErrors);
-        // }
-
         contact.id = privateClient.uuid();
-
         return privateClient.storeObject("contact", "card/" + contact.id, contact).
           then(function() {
             return indexContact(contact)
