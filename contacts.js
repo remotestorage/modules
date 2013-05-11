@@ -154,6 +154,10 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
                 "organizationName": { "type": "string" },
                 "organizationUnit": { "type": "string" }
             }
+        },
+        "impp": {
+            "type": "string",
+            "format": "uri"
         }
     }
   });
