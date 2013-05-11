@@ -189,8 +189,6 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
           then(function() {
             // don't wait until indexing is done. instead return immediately.
             indexContact(contact);
-          }).then(undefined, function(error) {
-            console.log('error', error);
           });
       },
 
