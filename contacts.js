@@ -223,9 +223,8 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
 
       clearIndex: function() {
         return rmRf('index/');
-      },
+      }
 
-      c: privateClient
     }
   };
 });
