@@ -25,88 +25,7 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
       return privateClient.remove(path);
     }
   }
-
-  function ngramIndexPath(objectType, key, ngram, objectId) {
-    return indexPathPrefix + objectType + '/' + key + '/' + ngram + '/' + encodeURIComponent(objectId);
-  }
-
-  function addToIndex(objectType, key, ngram, objectId, value) {
-    return privateClient.storeFile('text/plain', ngramIndexPath(objectType, key, ngram, objectId), value);
-  }
-
-  function removeFromIndex(objectType, key, ngram, objectId, value) {
-    return privateClient.remove(ngramIndexPath(objectType, key, ngram, objectId));
-  }
-
-  // splits given "string" in ngrams of given "size"
-  function extractNgrams(string, size) {
-    string = string.toLowerCase();
-    if(string.length === size) {
-      return [string];
-    }
-    var end = string.length - size + 1;
-    var ngrams = [];
-    for(var i=0;i<end;i++) {
-      ngrams.push(string.slice(i, i + size));
-    }
-    return ngrams;
-  }
-
-  function splitWords(string) {
-    return string.split(/\s+/);
-  }
-
-  function indexAttribute(objectType, objectId, key, value) {
-    return util.asyncEach(ngramize(value), function(ngram) {
-      return addToIndex(objectType, key, ngram, objectId, value);
-    });
-  }
-
-  function unindexAttribute(objectType, objectId, key, value) {
-    return util.asyncEach(ngramize(value), function(ngram) {
-      return removeFromIndex(objectType, key, ngram, objectId);
-    });
-  }
-
-  function ngramize(string) {
-    return splitWords(string).map(function(word) {
-      return extractNgrams(word, 2)
-    }).reduce(function(a, b) {
-      return a.concat(b);
-    }, []);
-  }
-
-  function queryKeyNgram(objectType, key, ngram) {
-    return privateClient.getListing(ngramIndexPath(objectType, key, ngram, '')).
-      then(function(objectIds) {
-        return objectIds.map(decodeURIComponent);
-      });
-  }
-
-  function calcResultWeights(groups) {
-    var weightedIds = {};
-    groups.forEach(function(group) {
-      group.forEach(function(id) {
-        if(id in weightedIds) {
-          weightedIds[id]++;
-        } else {
-          weightedIds[id] = 1;
-        }
-      });
-    });
-    return Object.keys(weightedIds).sort(function(_a, _b) {
-      var a = weightedIds[_a], b = weightedIds[_b];
-      return a < b ? 1 : a > b ? -1 : 0;
-    });
-  }
-
-  function queryIndex(objectType, query, key) {
-    return util.asyncMap(ngramize(query), function(ngram) {
-      return queryKeyNgram(objectType, key, ngram);
-    }).then(calcResultWeights);
-  }
-
-  
+ 
   // declaring data type "contact"
   privateClient.declareType('contact', 'http://json-schema.org/card', {
     "$schema": "http://json-schema.org/draft-03/schema#",
@@ -162,14 +81,59 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
     }
   });
 
+  function indexNodePath(type, attributeKey, attributeValue) {
+    return indexPathPrefix + type + '/' + encodeURIComponent(attributeKey) + '/' + encodeURIComponent(attributeValue);
+  }
+
+  function queryIndex(type, attributeKey, attributeValue) {
+    return privateClient.getObject(indexNodePath(type, attributeKey, attributeValue)).
+      then(function(list) {
+        if(! list) {
+          return [];
+        } else {
+          return util.asyncMap(list, function(id) {
+            return privateClient.getObject('card/' + id);
+          });
+        }
+      });
+  }
+
+  function indexAttribute(type, id, attributeKey, attributeValue) {
+    var path = indexNodePath(type, attributeKey, attributeValue);
+    return privateClient.getObject(path).then(function(list) {
+      return privateClient.storeObject('index-node', path, (list || []).concat([id]));
+    });
+  }
+
+  function unindexAttribute(type, id, attributeKey, attributeValue) {
+    var path = indexNodePath(type, attributeKey, attributeValue);
+    return privateClient.getObject(path).then(function(list) {
+      var newList = [];
+      if(list) {
+        list.forEach(function(item) {
+          if(item !== id) {
+            newList.push(item);
+          }
+        });
+        return privateClient.storeObject(path);
+      }
+    });
+  }
+
+  var INDEX_ATTRIBUTES = { email: true, impp: true };
+  var INDEX_ATTRIBUTE_KEYS = Object.keys(INDEX_ATTRIBUTES);
+
   function indexContact(contact) {
-    return indexAttribute('contact', contact.id, 'fn', contact.fn);
+    return util.asyncEach(INDEX_ATTRIBUTE_KEYS, function(key) {
+      return indexAttribute('contact', contact.id, key, contact[key]);
+    });
   }
 
   function unindexContact(contact) {
-    return unindexAttribute('contact', contact.id, 'fn', contact.fn);
+    return util.asyncEach(INDEX_ATTRIBUTE_KEYS, function(key) {
+      return unindexAttribute('contact', contact.id, key, contact[key]);
+    });
   }
-
   return {
     exports: {
 
@@ -181,6 +145,13 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
             return privateClient.getObject('card/' + id);
           });
         });
+      },
+
+      byKey: function(key, value) {
+        if(! INDEX_ATTRIBUTES[key]) {
+          throw new Error("Key '" + key + "' is not indexed!");
+        }
+        return queryIndex('contact', key, value);
       },
 
       add: function (contact) {
@@ -201,16 +172,6 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
           then(function() {
             unindexContact(contact);
           });
-      },
-
-      search: function (query) {
-        return queryIndex('contact', query, 'fn');
-      },
-
-      highlightNgrams: function(query, _text, highlighter) {
-        return ngramize(query).reduce(function(text, ngram) {
-          return text.replace(new RegExp(ngram, 'gi'), highlighter);
-        }, _text);
       },
 
       rebuildIndex: function() {
