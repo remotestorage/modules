@@ -1,7 +1,7 @@
 (function() {
   var moduleName = 'documents';
 
-  remoteStorage.defineModule(moduleName, function(myBaseClient) {
+  remoteStorage.defineModule(moduleName, function(privateClient, publicClient) {
     var errorHandlers=[];
     function fire(eventType, eventObj) {
       if(eventType == 'error') {
@@ -10,6 +10,12 @@
         }
       }
     }
+
+    function init() {
+      privateClient.release('');
+      publicClient.release('');
+    }
+
     function getUuid() {
       var uuid = '',
       i,
@@ -25,16 +31,16 @@
       return uuid;
     }
     function getPrivateList(listName) {
-      myBaseClient.use(listName+'/');
+      privateClient.use(listName+'/');
       function getIds() {
-        return myBaseClient.getListing(listName+'/');
+        return privateClient.getListing(listName+'/');
       }
       function getAll() {
-        return myBaseClient.getAll(listName + '/');
+        return privateClient.getAll(listName + '/');
       }
       function getContent(id) {
-        return myBaseClient.getObject(listName+'/'+id).
-	  then(function(obj) {
+        return privateClient.getObject(listName+'/'+id).
+          then(function(obj) {
             return obj ? obj.content : '';
           });
       }
@@ -45,46 +51,53 @@
       }
       function setContent(id, content) {
         if(content === '') {
-          return myBaseClient.remove(listName+'/'+id);
+          return privateClient.remove(listName+'/'+id);
         } else {
-          return myBaseClient.storeObject('text', listName+'/'+id, {
+          return privateClient.storeObject('text', listName+'/'+id, {
             content: content
           });
         }
       }
       function add(content) {
         var id = getUuid();
-        return myBaseClient.storeObject('text', listName+'/'+id, {
+        return privateClient.storeObject('text', listName+'/'+id, {
           content: content
         }).then(function() {
           return id;
         });
       }
       function on(eventType, cb) {
-        myBaseClient.on(eventType, cb);
+        privateClient.on(eventType, cb);
         if(eventType == 'error') {
           errorHandlers.push(cb);
         }
       }
       function set(id, obj) {
-        return myBaseClient.storeObject('text', listName+'/'+id, obj);
+        return privateClient.storeObject('text', listName+'/'+id, obj);
       }
       function get(id) {
-        return myBaseClient.getObject(listName+'/'+id).
+        return privateClient.getObject(listName+'/'+id).
           then(function(obj) {
             return obj || {};
           });
       }
+
+      function remove(id) {
+        return privateClient.remove(listName+'/'+id);
+      }
+
       return {
+        init          : init,
         getIds        : getIds,
-	getAll        : getAll,
+        getAll        : getAll,
         getContent    : getContent,
         getTitle      : getTitle,
-        setContent   : setContent,
+        setContent    : setContent,
         set           : set,
         get           : get,
         add           : add,
-        on            : on
+        on            : on,
+        remove        : remove
       };
     }
 
