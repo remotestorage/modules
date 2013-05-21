@@ -2,19 +2,6 @@
   var moduleName = 'documents';
 
   remoteStorage.defineModule(moduleName, function(privateClient, publicClient) {
-    var errorHandlers=[];
-    function fire(eventType, eventObj) {
-      if(eventType == 'error') {
-        for(var i=0; i<errorHandlers.length; i++) {
-          errorHandlers[i](eventObj);
-        }
-      }
-    }
-
-    function init() {
-      privateClient.release('');
-      publicClient.release('');
-    }
 
     function getUuid() {
       var uuid = '',
@@ -30,8 +17,15 @@
       }
       return uuid;
     }
+
+    function init() {
+      privateClient.release('');
+      publicClient.release('');
+    }
+
     function getPrivateList(listName) {
       privateClient.use(listName+'/');
+
       function getIds() {
         return privateClient.getListing(listName+'/');
       }
@@ -67,10 +61,11 @@
         });
       }
       function on(eventType, cb) {
-        privateClient.on(eventType, cb);
-        if(eventType == 'error') {
-          errorHandlers.push(cb);
-        }
+        privateClient.on(eventType, function (event) {
+          if (event.path.substr(2+moduleName.length, listName.length) === listName) {
+            cb(event);
+          }
+        });
       }
       function set(id, obj) {
         return privateClient.storeObject('text', listName+'/'+id, obj);
@@ -115,6 +110,7 @@
         "item documents/notes/personal": "used by docrastinate for the 'personal' pane"
       },
       exports: {
+        init: init,
         getPrivateList: getPrivateList,
         onChange: function(listName, callback) {
           myBaseClient.on('change', function(event) {
