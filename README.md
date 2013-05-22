@@ -11,6 +11,9 @@ after the module name (prefixed with `dev/`).
 If you want to help or learn more about how modules work, just hop on the IRC
 channel and say hello: [irc://irc.freenode.net:7000/remotestorage](irc://irc.freenode.net:7000/remotestorage)
 
+We also introduced new community forums (including a modules category), where
+you can ask and discuss anything: [http://community.remotestorage.io](http://community.remotestorage.io).
+
 ### Getting your code into the master branch
 
 Just issue a pull request, and we'll jointly review the code and help each
