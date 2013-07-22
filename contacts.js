@@ -155,7 +155,13 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
       },
 
       add: function (contact) {
-        contact.id = privateClient.uuid();
+        return this.save(contact);
+      },
+
+      save: function (contact) {
+        if (!contact.id) {
+          contact.id = privateClient.uuid();
+        }
         return privateClient.storeObject("contact", "card/" + contact.id, contact).
           then(function() {
             // don't wait until indexing is done. instead return immediately.
