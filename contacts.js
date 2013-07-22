@@ -25,59 +25,65 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
       return privateClient.remove(path);
     }
   }
- 
+
   // declaring data type "contact"
-  privateClient.declareType('contact', 'http://json-schema.org/card', {
+  privateClient.declareType('contact',
     "$schema": "http://json-schema.org/draft-03/schema#",
     "description": "A representation of a person, company, organization, or place",
     "type": "object",
     "properties": {
-        "fn": {
-          "description": "Formatted Name",
-          "type": "string",
-          "required": true
-        },
-        "familyName": { "type": "string" },
-        "givenName": { "type": "string" },
-        "additionalName": { "type": "array", "items": { "type": "string" } },
-        "honorificPrefix": { "type": "array", "items": { "type": "string" } },
-        "honorificSuffix": { "type": "array", "items": { "type": "string" } },
-        "nickname": { "type": "string" },
-        "url": { "type": "string", "format": "uri" },
-        "email": {
-            "type": "object",
-            "properties": {
-                "type": { "type": "string" },
-                "value": { "type": "string", "format": "email" }
-            }
-        },
-        "tel": {
-            "type": "object",
-            "properties": {
-                "type": { "type": "string" },
-                "value": { "type": "string", "format": "phone" }
-            }
-        },
-        "adr": { "$ref": "http: //json-schema.org/address" },
-        "geo": { "$ref": "http: //json-schema.org/geo" },
-        "tz": { "type": "string" },
-        "photo": { "type": "string" },
-        "logo": { "type": "string" },
-        "sound": { "type": "string" },
-        "bday": { "type": "string", "format": "date" },
-        "title": { "type": "string" },
-        "role": { "type": "string" },
-        "org": {
-            "type": "object",
-            "properties": {
-                "organizationName": { "type": "string" },
-                "organizationUnit": { "type": "string" }
-            }
-        },
-        "impp": {
-            "type": "string",
-            "format": "uri"
+      "fn": {
+        "description": "Formatted Name",
+        "type": "string",
+        "required": true
+      },
+      "familyName": { "type": "string" },
+      "givenName": { "type": "string" },
+      "additionalName": { "type": "array", "items": { "type": "string" } },
+      "honorificPrefix": { "type": "array", "items": { "type": "string" } },
+      "honorificSuffix": { "type": "array", "items": { "type": "string" } },
+      "nickname": { "type": "string" },
+      "url": { "type": "string", "format": "uri" },
+      "emails": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "value": { "type": "string", "format": "email" }
+          }
         }
+      },
+      "tels": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string" },
+            "value": { "type": "string", "format": "phone" }
+          }
+        }
+      },
+      "adr": { "$ref": "http: //json-schema.org/address" },
+      "geo": { "$ref": "http: //json-schema.org/geo" },
+      "tz": { "type": "string" },
+      "photo": { "type": "string" },
+      "logo": { "type": "string" },
+      "sound": { "type": "string" },
+      "bday": { "type": "string", "format": "date" },
+      "title": { "type": "string" },
+      "role": { "type": "string" },
+      "org": {
+        "type": "object",
+        "properties": {
+          "organizationName": { "type": "string" },
+          "organizationUnit": { "type": "string" }
+        }
+      },
+      "impp": {
+        "type": "string",
+        "format": "uri"
+      }
     }
   });
 
@@ -134,6 +140,7 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
       return unindexAttribute('contact', contact.id, key, contact[key]);
     });
   }
+
   return {
     exports: {
 
