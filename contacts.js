@@ -27,7 +27,7 @@ remoteStorage.defineModule('contacts', function(privateClient, publicClient) {
   }
 
   // declaring data type "contact"
-  privateClient.declareType('contact',
+  privateClient.declareType('contact', {
     "$schema": "http://json-schema.org/draft-03/schema#",
     "description": "A representation of a person, company, organization, or place",
     "type": "object",
