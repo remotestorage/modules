@@ -1,5 +1,8 @@
 (function() {
-  remoteStorage.defineModule('root', function(privClient, pubClient) {
+  if(!RemoteStorage) {
+    RemoteStorage = remoteStorage;
+  }
+  RemoteStorage.defineModule('root', function(privClient, pubClient) {
 
     function privPubFork(name, pathParamPos) {
       if(! pathParamPos) {

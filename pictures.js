@@ -5,8 +5,10 @@
 // Each folder at the root of the module is treated as an album,
 // unless it starts with a dollar sign ($)
 //
-
-remoteStorage.defineModule('pictures', function(privateClient, publicClient) {
+if(!RemoteStorage) {
+  RemoteStorage = remoteStorage;
+}
+RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
 
   var isDir = remoteStorage.util.isDir;
 
