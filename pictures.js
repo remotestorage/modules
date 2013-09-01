@@ -12,25 +12,11 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
   function isDir(path) {
     return path.substr(-1) == '/';
   }
-  function bindAll(object) {
-    for(var key in this) {
-      if(typeof(object[key]) == 'function') {
-        object[key] = object[key].bind(object);
-      }
-    }
-  }
 
   // Albums only work, when the user is connected and online.
   var Album = function(name, client) {
     this.name = name;
-    this.client = client;
-    this.prefix = encodeURIComponent(this.name) + '/';
-
-    // Sync all picture names, but not the pictures themselves.
-    // this.client.use(this.prefix, true);
-
-    // Bind all the things
-    bindAll(this);
+    this.client = client.scope(encodeURIComponent(name) + '/');
   };
 
   Album.prototype = {
@@ -45,20 +31,19 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
       return this.client.storeFile(
         mimeType,
         this._path(fileName),
-        data,
-        false // << skip the cache
+        data
       ).then(function() {
         return this.getPictureURL(fileName);
       }.bind(this));
     },
 
     remove: function(fileName) {
-      return this.client.remove(this._path(fileName));
+      return this.client.remove(fileName);
     },
 
     // Get a list of all pictures in this album.
     list: function() {
-      return this.client.getListing(this.prefix).
+      return this.client.getListing('').
         then(function(listing) {
           return listing.map(decodeURIComponent);
         });
@@ -68,15 +53,11 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     // Useful for displaying a public picture using the `src` attribute
     // of an `<img>` element.
     getPictureURL: function(fileName) {
-      return this.client.getItemURL(this._path(fileName));
+      return this.client.getItemURL(fileName);
     },
 
     close: function() {
-      this.client.cache(this.prefix, false);
-    },
-
-    _path: function(fileName) {
-      return this.prefix + encodeURIComponent(fileName);
+      this.client.cache('', false);
     }
 
   };
