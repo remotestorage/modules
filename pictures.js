@@ -66,7 +66,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
      *   name - the picture name.
      */
     remove: function(name) {
-      this.client.remove(name);
+      return this.client.remove(name);
     },
 
     /**
