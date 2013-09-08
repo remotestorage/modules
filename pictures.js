@@ -1,5 +1,7 @@
-
 // Pictures
+//
+// Maintainer: Sebastian Kippe <sebastian@kip.pe>
+// Version:    0.8.0
 //
 // This module stores collections of pictures, called "albums".
 // Each folder at the root of the module is treated as an album,
