@@ -124,10 +124,10 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
 
   };
 
-  // helper methods
+  // Helper methods
 
   function isDir(path) {
-    return path.substr(-1) == '/';
+    return path.substr(-1) === '/';
   }
 
   function filterAlbumListing(listing) {
