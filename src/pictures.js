@@ -1,15 +1,79 @@
-// Pictures
-//
-// Maintainer: Sebastian Kippe <sebastian@kip.pe>
-// Version:    0.8.0
-//
-// This module stores collections of pictures, called "albums".
-// Each folder at the root of the module is treated as an album,
-// unless it starts with a dollar sign ($).
-//
+/**
+ * File: Pictures
+ *
+ * Maintainer: - Sebastian Kippe <sebastian@kip.pe>
+ * Version: -    0.8.0
+ *
+ * This module stores collections of pictures, called "albums".
+ * Each folder at the root of the module is treated as an album,
+ * unless it starts with a dollar sign ($).
+ */
 
 RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
 
+  var exports = {
+
+    getUuid: privateClient.uuid,
+
+    /**
+     * Method: listPublicAlbums
+     *
+     * List the public albums.
+     *
+     * Returns:
+     *   An array with the albums names.
+     */
+    listPublicAlbums: function() {
+      return publicClient.getListing('').then(filterAlbumListing);
+    },
+
+    /**
+     * Method: listPrivateAlbums
+     *
+     * List the private albums.
+     *
+     * Returns:
+     *   An array with the albums names.
+     */
+    listPrivateAlbums: function() {
+      return privateClient.getListing('').then(filterAlbumListing);
+    },
+
+    /**
+     * Method: openPublicAlbum
+     *
+     * Open a public album.
+     *
+     * The album is synchronized and then returned.
+     *
+     * Parameters:
+     *   name - the album name.
+     *
+     * Returns:
+     *   The (synchronized) album.
+     */
+    openPublicAlbum: function(name) {
+      return new Album(name, publicClient).open();
+    },
+
+    /**
+     * Method: openPrivateAlbum
+     *
+     * Open a private album.
+     *
+     * The album is synchronized and then returned.
+     *
+     * Parameters:
+     *   name - the album name.
+     *
+     * Returns:
+     *   The (synchronized) album.
+     */
+    openPrivateAlbum: function(name) {
+      return new Album(name, privateClient).open();
+    }
+
+  };
   /**
    * Class: Album
    *
@@ -82,10 +146,11 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     list: function() {
       return this.client.getListing('')
         .then(function(listing) {
-          if (listing)
+          if (listing) {
             return listing.map(decodeURIComponent);
-          else
+          } else {
             return [];
+          }
         });
     },
 
@@ -141,69 +206,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
   }
 
   return {
-    exports: {
-
-      getUuid: privateClient.uuid,
-
-      /**
-       * Method: listPublicAlbums
-       *
-       * List the public albums.
-       *
-       * Returns:
-       *   An array with the albums names.
-       */
-      listPublicAlbums: function() {
-        return publicClient.getListing('').then(filterAlbumListing);
-      },
-
-      /**
-       * Method: listPrivateAlbums
-       *
-       * List the private albums.
-       *
-       * Returns:
-       *   An array with the albums names.
-       */
-      listPrivateAlbums: function() {
-        return privateClient.getListing('').then(filterAlbumListing);
-      },
-
-      /**
-       * Method: openPublicAlbum
-       *
-       * Open a public album.
-       *
-       * The album is synchronized and then returned.
-       *
-       * Parameters:
-       *   name - the album name.
-       *
-       * Returns:
-       *   The (synchronized) album.
-       */
-      openPublicAlbum: function(name) {
-        return new Album(name, publicClient).open();
-      },
-
-      /**
-       * Method: openPrivateAlbum
-       *
-       * Open a private album.
-       *
-       * The album is synchronized and then returned.
-       *
-       * Parameters:
-       *   name - the album name.
-       *
-       * Returns:
-       *   The (synchronized) album.
-       */
-      openPrivateAlbum: function(name) {
-        return new Album(name, privateClient).open();
-      }
-
-    }
+    exports: exports
   };
 
 });
