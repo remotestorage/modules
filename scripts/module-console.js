@@ -7,8 +7,14 @@ if(! moduleName) {
   process.exit(127);
 }
 
-global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-global.localStorage = require('localStorage');
+try {
+  global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+  global.localStorage = require('localStorage');
+} catch(e) {
+  console.log("You need to install 'xmlhttprequest' and 'localStorage' for this to work.");
+  console.log("Run this:\n  npm install xmlhttprequest localStorage");
+  process.exit(127);
+}
 
 require('./lib/remotestorage-node');
 
