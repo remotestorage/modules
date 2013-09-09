@@ -18,3 +18,16 @@ you can ask and discuss anything: [http://community.remotestorage.io](http://com
 
 Just issue a pull request, and we'll jointly review the code and help each
 other making it ready for master.
+
+### Using the module console
+
+This repository contains a module console, which is a NodeJS script to help you debug modules.
+
+For example to use the "contacts" module, run this:
+
+```
+scripts/module-console.js contacts
+```
+
+This will load the given module ("contacts" in this case) and give you a prompt. By default caching is enabled, so you don't need to connect to any remotestorage server.
+The prompt works like any other node prompt, with one important exception: Whenever a command returns a promise, it will wait for the promise to be fulfilled or rejected and then print the result. That makes it a lot easier to test asynchronous code in a trial & error way.
