@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "teste": "*"
+  },
+  "scripts": {
+    "test": "node_modules/.bin/teste"
   }
 }
