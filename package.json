@@ -1,0 +1,20 @@
+{
+  "name": "remotestorage-modules",
+  "description": "remotestorage modules collection",
+  "version": "0.0.1",
+  "private": false,
+  "author": "Niklas Cathor <nilclass@riseup.net>",
+  "license": "AGPL",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/remotestorage/modules.git"
+  },
+  "homepage": "http://github.com/remotestorage/modules",
+  "dependencies": {
+    "xmlhttprequest": "*",
+    "localStorage": "*"
+  },
+  "devDependencies": {
+    "teste": "*"
+  }
+}
