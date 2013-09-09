@@ -51,4 +51,5 @@ Don't Index: General, Functions, Files, Classes, Properties
 # --------------------------------------------------------------------------
 
 
+File: Documents  (documents.js)
 File: Pictures  (pictures.js)
