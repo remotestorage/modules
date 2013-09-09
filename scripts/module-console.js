@@ -7,16 +7,22 @@ if(! moduleName) {
   process.exit(127);
 }
 
-global.remoteStorage = require('./lib/remotestorage-node');
+global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+global.localStorage = require('localStorage');
+
+require('./lib/remotestorage-node');
+
+global.remoteStorage = new RemoteStorage();
 
 try { 
-  require('../' + moduleName);
+  require('../src/' + moduleName);
 } catch(exc) {
   console.log("Failed to load module '" + moduleName + "': ", exc.stack);
   process.exit(1);
 }
 
-remoteStorage.claimAccess(moduleName, 'rw');
+remoteStorage.access.claim(moduleName, 'rw');
+remoteStorage.caching.enable('/');
 
 global[moduleName] = remoteStorage[moduleName];
 
@@ -44,7 +50,7 @@ repl.start({
       result.then(function(res) {
         callback(null, new AsyncResult(res, false));
       }, function(res) {
-        callback(new AsyncResult(res, true));
+        callback(null, new AsyncResult(res, true));
       });
     } else {
       callback(null, result);
@@ -54,7 +60,7 @@ repl.start({
   writer: function(object) {
     if(typeof(object) === 'object' && object instanceof AsyncResult) {
       if(object.failed) {
-        return 'Promise failed with: ' + util.inspect(object.result);
+        return 'Promise failed with: ' + util.inspect(object.result) + ('stack' in object.result ? object.result.stack : '');
       } else {
         return 'Promise fulfilled with: ' + util.inspect(object.result);
       }
