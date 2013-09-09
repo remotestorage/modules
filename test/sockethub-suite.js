@@ -1,20 +1,4 @@
-if (typeof define !== 'function') {
-  var define = require('amdefine')(module);
-}
-
-try {
-  global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-  global.localStorage = require('localStorage');
-} catch(e) {
-  console.log("You need to install 'xmlhttprequest' and 'localStorage' for this to work.");
-  console.log("Run this:\n  npm install xmlhttprequest localStorage");
-  process.exit(127);
-}
-
-require('./scripts/lib/remotestorage-node');
-require('./src/sockethub');
-global.remoteStorage = new RemoteStorage();
-
+require('./test/dependencies');
 define(['require'], function(require) {
   var suites = [];
 
@@ -33,7 +17,7 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
 
-      remoteStorage.caching.enable("/");
+      remoteStorage.caching.enable('/');
       env.sockethub = remoteStorage.sockethub;
       test.done();
     },
@@ -43,9 +27,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.sockethub.writeConfig(env.configBad).then(function () {
-            test.result(true);
-          }, function () {
+          env.sockethub.writeConfig(env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -54,9 +36,7 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.sockethub.writeConfig(env.config).then(function () {
-            test.result(true);
-          }, function () {
+          env.sockethub.writeConfig(env.config).then(test.done, function () {
             test.result(false);
           });
         }
