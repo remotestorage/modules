@@ -2,7 +2,7 @@ DOC_BIN        = naturaldocs
 DOC_DIR        = ./doc/code
 DOC_CONFIG_DIR = ./doc/config
 DOC_CUSTOM_CSS = remotestorage
-DOC_INPUTS     = -i src/
+DOC_INPUTS     = -i src/ -i doc/pages/
 
 .PHONY: doc
 

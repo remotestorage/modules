@@ -1,4 +1,4 @@
-Format: 1.52
+Format: 1.51
 
 
 # You can add a title and sub-title to your menu like this:
@@ -48,7 +48,24 @@ Don't Index: General, Functions, Files, Classes, Properties
 # time it is run.  When working with groups, just deal with the braces and
 # forget about the indentation and comments.
 # 
+# You can use this file on other computers even if they use different
+# directories.  As long as the command line points to the same source files,
+# Natural Docs will be able to correct the locations automatically.
+# 
 # --------------------------------------------------------------------------
 
 
-File: Pictures  (pictures.js)
+File: Overview  (/home/nil/src/modules/doc/pages/overview.txt)
+
+Group: Modules  {
+
+   File: Email  (/home/nil/src/modules/src/email.js)
+   File: Pictures  (/home/nil/src/modules/src/pictures.js)
+   }  # Group: Modules
+
+Variable Index: Variables
+
+
+##### Do not change or remove these lines. #####
+Data: 1(D3333RuEG3\8o36H93EufNoG636H9)
+Data: 1(h3333RuEG3\8o36H93EufNoG63fu93Ip`G6)
