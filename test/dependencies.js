@@ -12,5 +12,4 @@ try {
 }
 
 require('./scripts/lib/remotestorage-node');
-require('./src/sockethub');
 global.remoteStorage = new RemoteStorage();

@@ -4138,4 +4138,4 @@ Math.uuid = function (len, radix) {
 
 })();
 
-module.exports = RemoteStorage;
+if(typeof(define) == 'function' && define.amd) define([], function() { return RemoteStorage }); else module.exports = RemoteStorage;

@@ -1,4 +1,5 @@
 require('./test/dependencies');
+require('./src/sockethub');
 define(['require'], function(require) {
   var suites = [];
 
@@ -16,7 +17,6 @@ define(['require'], function(require) {
         host: false,
         tls: 'uhh'
       };
-
       remoteStorage.caching.enable('/');
       env.sockethub = remoteStorage.sockethub;
       test.done();
