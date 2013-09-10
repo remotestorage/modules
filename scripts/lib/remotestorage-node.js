@@ -2132,7 +2132,7 @@ var publicApi = {
 
 global.tv4 = publicApi;
 
-})((typeof module !== 'undefined' && module.exports) ? exports : this);
+})(typeof(window) != 'undefined' ? window : global);
 
 
 
@@ -4138,4 +4138,4 @@ Math.uuid = function (len, radix) {
 
 })();
 
-remoteStorage = new RemoteStorage();
+module.exports = RemoteStorage;

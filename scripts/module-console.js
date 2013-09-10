@@ -16,7 +16,7 @@ try {
   process.exit(127);
 }
 
-require('./lib/remotestorage-node');
+var RemoteStorage = require('./lib/remotestorage-node');
 
 global.remoteStorage = new RemoteStorage();
 
