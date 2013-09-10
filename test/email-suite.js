@@ -103,7 +103,7 @@ define([], function() {
     desc: "email accounts / credentials management",
     setup: function(env, test) {
       commonSetup(env);
-      
+
       // fixtures
       env.fullAccount = {
         actor: {
@@ -283,6 +283,63 @@ define([], function() {
         }
       }
 
+    ]
+  });
+
+  suites.push({
+    name: "Mailbox",
+    desc: "Representation of a Mailbox",
+    setup: function(env, test) {
+      commonSetup(env);
+
+      env.mailbox = env.email.openMailbox('INBOX');
+
+      test.done();
+    },
+
+    tests: [
+      {
+        desc: "#getCount() returns the initial count of 0",
+        run: function(env, test) {
+          env.mailbox.getCount().then(function(count) {
+            test.assert(count, 0);
+          });
+        }
+      },
+
+      {
+        desc: "#store() stores a message by date",
+        run: function(env, test) {
+          var message = {
+            from: {
+              address: 'max@muster.de'
+            },
+            to: [{
+              address: 'maria@muster.de'
+            }],
+            subject: 'something',
+            body: 'also something',
+            date: '2013-04-17 12:30:00 UTC',
+            messageId: 'message-id',
+          };
+          env.mailbox.store(message).then(function() {
+            env.emailScope.getObject(
+              'mailbox/INBOX/pool/2013/4/17/12-30-0-message-id'
+            ).then(function(obj) {
+              Test.assert(obj, message);
+            });
+          });
+        }
+      },
+
+      {
+        desc: "#getCount() returns the count of 1 after storing a message",
+        run: function(env, test) {
+          env.mailbox.getCount().then(function(count) {
+            test.assert(count, 1);
+          });
+        }
+      }
     ]
   });
 

@@ -328,9 +328,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     },
 
     storeByDate: function(type, date, id, object) {
-      console.log('storeByDate', type, date, id, object);
       this._attachType(object, type);
-      console.log('attached type', object);
       var result = this.validate(object);
       if(result.error) {
         console.log('validation result', result);
@@ -338,6 +336,8 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
       }
       if(typeof(date) == 'string') {
         date = new Date(Date.parse(date));
+      } else if(typeof(date) == 'number') {
+        date = new Date(date);
       }
       var basePath = [
         date.getUTCFullYear(),
@@ -349,6 +349,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
         date.getUTCMinutes(),
         date.getUTCSeconds()
       ].join('-') + '-' + id;
+      console.log('storing under', basePath + '/' + encodeURIComponent(fileName));
       return this.storeObject(type, basePath + '/' + encodeURIComponent(fileName), object);
     }
   };
@@ -370,7 +371,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     mailbox.name = name;
     mailbox.extend(mailboxMethods);
     mailbox.pool = mailbox.scope('pool/').extend(dateIndexMethods);
-    mailboxCache[name] = this;
+    mailboxCache[name] = mailbox;
     return mailbox;    
   }
 
@@ -430,9 +431,15 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     },
 
     updateCounts: function(step) {
-      return this.getFile('count').then(function(count) {
-        return this.storeFile('text/plain', 'count', String((parseInt(count) || 0) + step));
+      return this.getFile('count').then(function(file) {
+        return this.storeFile('text/plain', 'count', String((parseInt(file.data) || 0) + step));
       }.bind(this));
+    },
+
+    getCount: function() {
+      return this.getFile('count').then(function(file) {
+        return parseInt(file.data) || 0;
+      });
     },
 
     /**
