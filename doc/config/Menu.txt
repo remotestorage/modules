@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: General, Functions, Files, Classes, Properties
+Don't Index: General, Variables, Functions, Files, Classes, Properties
 
 
 # --------------------------------------------------------------------------
@@ -63,7 +63,8 @@ Group: Modules  {
    File: Pictures  (/home/nil/src/modules/src/pictures.js)
    }  # Group: Modules
 
-Variable Index: Variables
+Schema Index: List of schemas
+Export Index: List of module functions
 
 
 ##### Do not change or remove these lines. #####

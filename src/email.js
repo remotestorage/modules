@@ -1,11 +1,14 @@
+/**
+ * File: Email
+ *
+ * Maintainer: - Niklas E. Cathor <nilclass@riseup.net>
+ * Version:    - 0.1.0
+ *
+ * This module stores email messages and drafts, as well as credentials for
+ * SMTP and IMAP servers.
+ */
+
 RemoteStorage.defineModule('email', function(privateClient, publicClient) {
-
-
-  /**
-   * File: email
-   *
-   *
-   */
 
   /**
    * Using the mailbox index:
@@ -42,15 +45,29 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
    */
 
   /**
-   * Class: email.recipient
+   * Schema: email.recipient
    *
-   * Property: name
+   * Represents a recipient of a message.
    *
-   * Property: address
+   * Properties:
+   *   name    - Name of the recipient
+   *   address - RFC822 compliant address (i.e. an email address)
    */
 
   /**
-   * Class: email.draft
+   * Schema: email.draft
+   *
+   * Represents a saved message that hasn't been sent yet.
+   *
+   * Properties:
+   *   from    - Sender of the message. Same properties as <email.recipient>.
+   *   to      - Array of <email.recipient> objects.
+   *   cc      - Array of carbon copy recipients (<email.recipient> objects).
+   *   bcc     - Array of blind carbon copy recipients (<email.recipient> objects).
+   *   subject - Message subject (a String).
+   *   body    - Message body (a String).
+   *   date    - Message date. For a draft this is set to last time
+   *             the draft was saved.
    */
   privateClient.declareType('draft', {
     type: 'object',
@@ -68,10 +85,6 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
         }
       },
 
-      /**
-       * Property: to
-       * Array of recipients (<email.recipient> objects).
-       */
       to: {
         type: 'array',
         items: {
@@ -89,10 +102,6 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
         }
       },
 
-      /**
-       * Property: cc
-       * Array of carbon copy recipients (<email.recipient> objects).
-       */
       cc: {
         type: 'array',
         items: {
@@ -110,10 +119,6 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
         }
       },
 
-      /**
-       * Property: bcc
-       * Array of blind carbon copy recipients (<email.recipient> objects).
-       */
       bcc: {
         type: 'array',
         items: {
@@ -131,27 +136,14 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
         }
       },
 
-      /**
-       * Property: subject
-       * Message subject.
-       */
       subject: {
         type: 'string'
       },
 
-      /**
-       * Property: body
-       * Message body.
-       */
       body: {
         type: 'string'
       },
 
-      /**
-       * Property: date
-       * Message date.
-       * For a draft this represents the last time the draft was saved.
-       */
       date: {
         type: 'date'
       },
@@ -169,7 +161,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
   });
 
   /**
-   * Class: email.message
+   * Schema: email.message
    *
    * Represents a received or sent message.
    *
@@ -179,7 +171,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
    *  - <email.draft.to>,
    *  - <email.draft.subject>,
    *  - <email.draft.body> and
-   *  - <email.draft.date> 
+   *  - <email.draft.date>
    */
   privateClient.declareType('message', {
     extends: 'draft',
@@ -187,60 +179,59 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
   });
 
   /**
-   * Class: email.account
+   * Schema: email.account
    *
    * Represents an account's basic metadata.
+   *
+   * Properties:
+   *   name    - The account owner's name.
+   *             This name is used as the sender name for outgoing messages.
+   *   address - The address associated with this account.
+   *             Will be used as the sender address for outgoing messages.
    *
    */
   privateClient.declareType('account', {
     type: 'object',
     properties: {
-      /**
-       * Property: name
-       * The account owner's name.
-       * This name is used as the sender name for outgoing messages.
-       */
       name: { type: 'string' },
-      /**
-       * Property: address
-       * The address associated with this account.
-       * Will be used as the sender address for outgoing messages.
-       */
       address: { type: 'string' }
     }
   });
 
   /**
-   * Class: email.smtp-credentials
+   * Schema: email.smtp-credentials
+   *
+   * Credentials for a SMTP server.
+   *
+   * Properties:
+   *   host     - Hostname of the SMTP server.
+   *   username - Username to authenticate against SMTP server.
+   *   password - Password to authenticate against SMTP server.
+   *   port     - Port to connect to.
+   *   secure   - Boolean flag to turn on TLS / SSL.
    */
   privateClient.declareType('smtp-credentials', {
     type: 'object',
     properties: {
-      /**
-       * Property: host
-       */
       host: { type: 'string' },
-      /**
-       * Property: username
-       */
       username: { type: 'string' },
-      /**
-       * Property: password
-       */
       password: { type: 'string' },
-      /**
-       * Property: port
-       */
       port: { type: 'number' },
-      /**
-       * Property: secure
-       */
       secure: { type: 'boolean' },
     }
   });
 
   /**
-   * Class: email.imap-credentials
+   * Schema: email.imap-credentials
+   *
+   * Credentials for an IMAP server.
+   *
+   * Properties:
+   *   host     - Hostname of the IMAP server.
+   *   username - Username to authenticate against IMAP server.
+   *   password - Password to authenticate against IMAP server.
+   *   port     - Port to connect to.
+   *   secure   - Boolean flag to turn on TLS / SSL.
    */
   privateClient.declareType('imap-credentials', {
     type: 'object',
@@ -365,9 +356,13 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
   var mailboxCache = {};
 
   /**
-   * Method: openMailbox
+   * Export: mailbox
+   */
+
+  /**
+   * Public Method: mailbox
    *
-   * returns a <MailboxScope>.
+   * returns a <Mailbox>.
    */
   var openMailbox = function(name) {
     if(mailboxCache[name]) return mailboxCache[name];
@@ -375,12 +370,12 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     mailbox.name = name;
     mailbox.extend(mailboxMethods);
     mailbox.pool = mailbox.scope('pool/').extend(dateIndexMethods);
-    mailboxCache[name] = mailbox;
-    return mailbox;
+    mailboxCache[name] = this;
+    return mailbox;    
   }
 
   /**
-   * Class: MailboxScope
+   * Class: Mailbox
    *
    *   Represents a mailbox.
    *
@@ -458,10 +453,6 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
 
   return {
     exports: {
-
-      /**
-       * Object: email.credentials
-       */
       credentials: privateClient.scope('credentials/').extend({
         getCurrent: function() {
           return this.getObject('current').then(function(account) {

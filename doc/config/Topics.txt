@@ -81,5 +81,16 @@ Format: 1.51
 # topics [at] naturaldocs [dot] org.
 
 
-Topic Type: Module
+Topic Type: Schema
 
+   Plural: Schemas
+   Keywords:
+      schema
+
+
+Topic Type: Export
+
+   Plural: Exports
+   Keywords:
+      export
+      public method

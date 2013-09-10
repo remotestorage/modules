@@ -16,7 +16,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     getUuid: privateClient.uuid,
 
     /**
-     * Method: listPublicAlbums
+     * Export: listPublicAlbums
      *
      * List the public albums.
      *
@@ -28,7 +28,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     },
 
     /**
-     * Method: listPrivateAlbums
+     * Export: listPrivateAlbums
      *
      * List the private albums.
      *
@@ -40,7 +40,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     },
 
     /**
-     * Method: openPublicAlbum
+     * Export: openPublicAlbum
      *
      * Open a public album.
      *
@@ -57,7 +57,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
     },
 
     /**
-     * Method: openPrivateAlbum
+     * Export: openPrivateAlbum
      *
      * Open a private album.
      *
