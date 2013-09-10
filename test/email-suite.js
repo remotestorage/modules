@@ -255,6 +255,37 @@ define([], function() {
     ]
   });
 
+  suites.push({
+    name: "email mailbox",
+    desc: "listing and opening mailboxes",
+    setup: function(env, test) {
+      commonSetup(env);
+
+      test.done();
+    },
+
+    tests: [
+
+      {
+        desc: "#listMailboxes() lists mailboxes",
+        run: function(env, test) {
+          env.email.listMailboxes().then(function(list) {
+            test.assert(list, [])
+          });
+        }
+      },
+
+      {
+        desc: "#openMailbox() opens a mailbox",
+        run: function(env, test) {
+          var inbox = env.email.openMailbox('INBOX');
+          test.assertType(inbox, 'object');
+        }
+      }
+
+    ]
+  });
+
   return suites;
 
 });

@@ -360,7 +360,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
    */
 
   /**
-   * Public Method: mailbox
+   * Public Method: openMailbox
    *
    * returns a <Mailbox>.
    */
@@ -593,7 +593,15 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
         }
       }),
 
-      mailbox: openMailbox
+      openMailbox: openMailbox,
+
+      listMailboxes: function() {
+        return privateClient.getListing('mailbox/').then(function(list) {
+          return (list||[]).map(function(item) {
+            return item.replace(/\/$/, '');
+          });
+        });
+      }
     }
   };
 });
