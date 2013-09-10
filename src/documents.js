@@ -2,7 +2,7 @@
  * File: Documents
  *
  * Maintainer: - Jorin Vogel <hi@jorin.in>
- * Version: -    0.1.0
+ * Version: -    0.1.1
  *
  * This modue stores lists of documents.
  * A document has the fields title, content and lastEdited.
@@ -87,7 +87,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      */
     add: function(doc) {
       var id = privateClient.uuid();
-      return listMethods.set(id, doc);
+      return listMethods.set.call(this, id, doc);
     },
 
     /**
