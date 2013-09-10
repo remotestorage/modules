@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: General, Variables, Functions, Files, Classes, Properties
+Don't Index: General, Functions, Variables, Files, Classes, Properties
 
 
 # --------------------------------------------------------------------------
@@ -60,6 +60,7 @@ File: Overview  (/home/nil/src/modules/doc/pages/overview.txt)
 Group: Modules  {
 
    File: Email  (/home/nil/src/modules/src/email.js)
+   File: PGP  (/home/nil/src/modules/src/pgp.js)
    File: Pictures  (/home/nil/src/modules/src/pictures.js)
    }  # Group: Modules
 
