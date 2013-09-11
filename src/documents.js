@@ -2,7 +2,7 @@
  * File: Documents
  *
  * Maintainer: - Jorin Vogel <hi@jorin.in>
- * Version: -    0.1.2
+ * Version: -    0.1.3
  *
  * This modue stores lists of documents.
  * A document has the fields title, content and lastEdited.
@@ -142,10 +142,30 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
     addRaw: function(contentType, data) {
       var id = privateClient.uuid();
       var path  = 'shared/' + id;
+      var url = this.getItemURL(path);
       return this.storeFile(contentType, path, data).then(function() {
-        return path;
+        return url;
       });
+    },
+
+    /**
+     * Method: setRaw
+     *
+     * Store a raw doccument of the specified contentType at shared/.
+     *
+     * Parameters:
+     *   id - id of the document to update
+     *   contentType - the content type of the data (like 'text/html').
+     *   data - the raw data to store.
+     *
+     * Returns:
+     *   A promise, which will be fulfilled with the path of the added document.
+     */
+    setRaw: function(id, contentType, data) {
+      var path  = 'shared/' + id;
+      return this.storeFile(contentType, path, data);
     }
+
 
   };
 
