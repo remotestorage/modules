@@ -326,7 +326,7 @@ define([], function() {
             env.emailScope.getObject(
               'mailbox/INBOX/pool/2013/4/17/12-30-0-message-id'
             ).then(function(obj) {
-              Test.assert(obj, message);
+              test.assert(obj, message);
             });
           });
         }
