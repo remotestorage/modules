@@ -151,9 +151,13 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
 
       getAll: function () {
         return privateClient.getListing('card/').then(function (ids) {
-          return util.asyncMap(ids, function (id) {
-            return privateClient.getObject('card/' + id);
-          });
+          if (typeof ids !== 'undefined') {
+            return util.asyncMap(ids, function (id) {
+              if (typeof id !== 'undefined') {
+                return privateClient.getObject('card/' + id);
+              }
+            });
+          }
         });
       },
 
