@@ -20,7 +20,7 @@ var RemoteStorage = require('./lib/remotestorage-node');
 
 global.remoteStorage = new RemoteStorage();
 
-try { 
+try {
   require('../src/' + moduleName);
 } catch(exc) {
   console.log("Failed to load module '" + moduleName + "': ", exc.stack);
