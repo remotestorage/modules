@@ -29,7 +29,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
    *   // will store at:
    *   //   /email/mailbox/inbox/pool/<year>/<month>/<day>/
    *   //     <hour>-<minute>-<second>-<message-id>
-   *   
+   *
    *   email.mailbox('inbox').list({
    *     limit: 50,
    *     order: 'desc'
@@ -41,7 +41,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
    *     order: 'asc'
    *   });
    *   // returns the 5 oldest messages from 'sent' folder
-   * 
+   *
    */
 
   /**
@@ -241,7 +241,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
       password: { type: 'string' },
       port: { type: 'number' },
       secure: { type: 'boolean' },
-    }    
+    }
   });
 
   function addressToKey(address) {
@@ -257,7 +257,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     }
   }
 
-  function sortAsc(a, b) { return a > b ? -1 : b > a ? 1 : 0; } 
+  function sortAsc(a, b) { return a > b ? -1 : b > a ? 1 : 0; }
   function sortDesc(a, b) { return a < b ? -1 : b < a ? 1 : 0; }
 
   var dateIndexMethods = {
@@ -372,7 +372,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     mailbox.extend(mailboxMethods);
     mailbox.pool = mailbox.scope('pool/').extend(dateIndexMethods);
     mailboxCache[name] = mailbox;
-    return mailbox;    
+    return mailbox;
   }
 
   /**
@@ -443,7 +443,7 @@ RemoteStorage.defineModule('email', function(privateClient, publicClient) {
     },
 
     /**
-     * 
+     *
      */
     list: function(options) {
       if(! options) options = {};
