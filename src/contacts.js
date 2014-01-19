@@ -85,8 +85,14 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
         }
       },
       'impp': {
-        'type': 'string',
-        'format': 'uri'
+        'type': 'array',
+        'items': {
+          'type': 'object',
+          'properties': {
+            'type': { 'type': 'string' },
+            'value': { 'type': 'string' }
+          }
+        }
       }
     }
   });
