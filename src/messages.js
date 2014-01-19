@@ -1,8 +1,8 @@
 /**
  * File: Messages
  *
- * Originally created by: - Niklas E. Cathor <nilclass@riseup.net>
- * Maintained by: - Nick Jennings <nick@silverbucket.net>
+ * Niklas E. Cathor <nilclass@riseup.net>
+ * Nick Jennings <nick@silverbucket.net>
  *
  * Version:    - 0.1.0
  *
@@ -16,29 +16,32 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    * Using the mailbox index:
    *
    *
-   *
-   *   email.mailbox('inbox').store({
-   *     date: ...
-   *     subject: ...
-   *     body: ...
-   *     to: [
+   *   messages.account('xmpp:user@server.com').store({
+   *     object: {
+   *       date: ...
+   *       subject: ...
+   *       text: ...
+   *       html: ...
+ *       },
+   *     target: [
    *       {
    *         name: ...
    *         address: ...
    *       }
    *     ]
    *   });
+   *
    *   // will store at:
-   *   //   /email/mailbox/inbox/pool/<year>/<month>/<day>/
+   *   //   /messages/accounts/xmpp:user@server.com/pool/<year>/<month>/<day>/
    *   //     <hour>-<minute>-<second>-<message-id>
    *
-   *   email.mailbox('inbox').list({
+   *   messages.account('xmpp:user@server.com').list({
    *     limit: 50,
    *     order: 'desc'
    *   });
    *   // returns the 50 latest messages (this is also the defaults)
    *
-   *   email.mailbox('sent').list({
+   *   messages.account('mailto:john.doe@yahoo.com').list({
    *     limit: 5,
    *     order: 'asc'
    *   });
@@ -47,7 +50,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    */
 
   /**
-   * Schema: email.recipient
+   * Schema: message.recipient
    *
    * Represents a recipient of a message.
    *
@@ -311,11 +314,9 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var fetchYear = function (years) {
         var year = years.shift();
         return this.getListing(year).
-          then(sort).
-          then(function (months) {
+          then(sort).then(function (months) {
             return fetchMonth(year, months);
-          }).
-          then(function () {
+          }).then(function () {
             if ((result.length < limit) && (years.length > 0)) {
               return fetchYear(years);
             }
@@ -325,11 +326,9 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var fetchMonth = function (year, months) {
         var month = months.shift();
         return this.getListing(year + month).
-          then(sort).
-          then(function (days) {
+          then(sort).then(function (days) {
             return fetchDay(year, month, days);
-          }).
-          then(function () {
+          }).then(function () {
             if ((result.length < limit) && (months.length > 0)) {
               return fetchMonth(year, months);
             }
@@ -339,11 +338,9 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var fetchDay = function (year, month, days) {
         var day = days.shift();
         return this.getListing(year + month + day).
-          then(sort).
-          then(function (messageIds) {
+          then(sort).then(function (messageIds) {
             return fetchMessage(year, month, day, messageIds);
-          }).
-          then(function () {
+          }).then(function () {
             if ((result.length < limit) && (days.length > 0)) {
               return fetchDay(year, month, days);
             }
@@ -399,53 +396,53 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     }
   };
 
-  var mailboxCache = {};
+  var messageCache = {};
 
   /**
-   * Export: mailbox
+   * Export: messages
    */
 
   /**
-   * Public Method: openMailbox
+   * Public Method: openMessages
    *
-   * returns a <Mailbox>.
+   * returns a <Messages> object.
    */
-  var openMailbox = function (name) {
-    if (mailboxCache[name]) {
-      return mailboxCache[name];
+  var openMessages = function (accountString) {
+    if (messageCache[accountString]) {
+      return messageCache[accountString];
     }
 
-    var mailbox = privateClient.scope('mailbox/' + encodeURIComponent(name) + '/');
-    mailbox.name = name;
-    mailbox.extend(mailboxMethods);
-    mailbox.pool = mailbox.scope('pool/').extend(dateIndexMethods);
-    mailboxCache[name] = mailbox;
-    return mailbox;
+    var messages = privateClient.scope('groups/' + encodeURIComponent(accountString) + '/');
+    messages.name = accountString;
+    messages.extend(messageMethods);
+    messages.pool = messages.scope('pool/').extend(dateIndexMethods);
+    messageCache[accountString] = messages;
+    return messages;
   };
 
   /**
-   * Class: Mailbox
+   * Class: Messages
    *
-   *   Represents a mailbox.
+   *   Represents a grouping of messages.
    *
    *
    * Property: name
-   *   Name of the mailbox
+   *   Name of the account the messages are attatched to
    *
    *
    * Property: pool
    *   Direct access to the message pool (a <DateIndexedScope>)
    */
 
-  var mailboxMethods = {
+  var messageMethods = {
 
     /**
      * Method: store
      *
-     * Takes a <email.message> object and stores it.
+     * Takes a <message> object and stores it.
      */
     store: function (message) {
-      return this.pool.storeByDate('message', message.date, message.messageId, message).
+      return this.pool.storeByDate('message', message.object.date, message.messageId, message).
         then(function () {
           this.updateCounts( + 1 );
         }.bind(this));
@@ -470,7 +467,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         oneDone();
       }.bind(this);
       messages.forEach(function (message) {
-        this.pool.storeByDate('message', message.date, message.messageId, message).then(
+        this.pool.storeByDate('message', message.object.date, message.messageId, message).then(
           oneDone, oneFailed
         );
       }.bind(this));
@@ -624,7 +621,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       }),
 
       /**
-       * Object: email.drafts
+       * Object: message.drafts
        */
       drafts: privateClient.scope('drafts/').extend({
         /**
@@ -642,7 +639,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
          * Save given draft as latest one.
          *
          * Parameters:
-         *   draft - A <email.draft> Object
+         *   draft - A <message.draft> Object
          */
         saveLatest: function (draft) {
           return this.storeObject('draft', 'latest', draft);
@@ -653,10 +650,10 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         }
       }),
 
-      openMailbox: openMailbox,
+      openMessages: openMessages,
 
-      listMailboxes: function () {
-        return privateClient.getListing('mailbox/').then(function (list) {
+      listMessageAccounts: function () {
+        return privateClient.getListing('accounts/').then(function (list) {
           return (list||[]).map(function (item) {
             return item.replace(/\/$/, '');
           });
