@@ -1,8 +1,8 @@
 /**
  * File: Messages
  *
- * Niklas E. Cathor <nilclass@riseup.net>
  * Nick Jennings <nick@silverbucket.net>
+ * Niklas E. Cathor <nilclass@riseup.net>
  *
  * Version:    - 0.1.0
  *
@@ -355,7 +355,6 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
   function unpackURI(uri) {
     var record = [];
     record = uri.split(':',2);
-console.log('URI: '+uri+', ', record);
     if (!record[1]) {
       return false;
     }
