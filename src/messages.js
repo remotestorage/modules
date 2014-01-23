@@ -509,8 +509,9 @@ console.log('URI: '+uri+', ', record);
     if (messageCache[accountURI]) {
       return messageCache[accountURI];
     }
+    accountURI = addressToKey(accountURI);
 
-    var messages = privateClient.scope('groups/' + encodeURIComponent(accountURI) + '/');
+    var messages = privateClient.scope('groups/' + accountURI + '/');
     messages.name = accountURI;
     messages.extend(messageMethods);
     messages.pool = messages.scope('pool/').extend(dateIndexMethods);

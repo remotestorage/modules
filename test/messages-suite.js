@@ -265,10 +265,10 @@ define([], function () {
       },
 
       {
-        desc: '#openMessageAccount() opens a message group',
+        desc: '#account() opens a message group',
         run: function(env, test) {
-          var inbox = env.messages.openMessageAccount('INBOX');
-          test.assertType(inbox, 'object');
+          var msgs = env.messages.account('smtp:max-at-muster.de');
+          test.assertType(msgs, 'object');
         }
       }
 
@@ -281,7 +281,7 @@ define([], function () {
     setup: function(env, test) {
       commonSetup(env);
 
-      env.msgGroup = env.messages.openMessageAccount('INBOX');
+      env.msgGroup = env.messages.account('imap:max-at-muster.de');
 
       test.done();
     },
@@ -316,9 +316,9 @@ define([], function () {
           env.msgGroup.store(message).then(function() {
             return env.msgGroup.list();
           }).then(function (list) {
-            console.log('LIST: ', list);
+            test.assertAnd(list[0].object.subject, message.object.subject);
             env.messageScope.getObject(
-              'messages/INBOX/pool/2013/4/17/12-30-0-message-id'
+              'groups/imap:max-at-muster.de/pool/2013/4/17/12-30-0-message-id'
             ).then(function (obj) {
               test.assert(obj, message);
             });
@@ -329,7 +329,7 @@ define([], function () {
       {
         desc: '#getCount() returns the count of 1 after storing a message',
         run: function(env, test) {
-          env.messages.getCount().then(function(count) {
+          env.msgGroup.getCount().then(function(count) {
             test.assert(count, 1);
           });
         }
