@@ -13,7 +13,7 @@
 RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
 
   /**
-   * Using the mailbox index:
+   * Using the message index:
    *
    *
    *   messages.account('xmpp:user@server.com').store({
@@ -22,7 +22,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    *       subject: ...
    *       text: ...
    *       html: ...
- *       },
+   *     },
    *     target: [
    *       {
    *         name: ...
@@ -224,13 +224,18 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    *             Will be used as the sender address for outgoing messages.
    *
    */
-  privateClient.declareType('account', {
-    type: 'object',
+  var actorTemplate = {
     properties: {
-      name: { type: 'string' },
-      address: { type: 'string' }
+      actor: {
+        type: 'object',
+        required: true,
+        properties: {
+          name: { type: 'string' },
+          address: { type: 'string' }
+        }
+      }
     }
-  });
+  };
 
   /**
    * Schema: account.smtp-credentials
@@ -247,11 +252,14 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
   privateClient.declareType('smtp-credentials', {
     type: 'object',
     properties: {
-      host: { type: 'string' },
-      username: { type: 'string' },
-      password: { type: 'string' },
-      port: { type: 'number' },
-      secure: { type: 'boolean' },
+      actor: actorTemplate,
+      credentials: {
+        host: { type: 'string' },
+        username: { type: 'string' },
+        password: { type: 'string' },
+        port: { type: 'number' },
+        secure: { type: 'boolean' },
+      }
     }
   });
 
@@ -270,16 +278,105 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
   privateClient.declareType('imap-credentials', {
     type: 'object',
     properties: {
-      host: { type: 'string' },
-      username: { type: 'string' },
-      password: { type: 'string' },
-      port: { type: 'number' },
-      secure: { type: 'boolean' },
+      actor: actorTemplate,
+      credentials: {
+        host: { type: 'string' },
+        username: { type: 'string' },
+        password: { type: 'string' },
+        port: { type: 'number' },
+        secure: { type: 'boolean' }
+      }
     }
   });
 
+  /**
+   * Schema: account.xmpp-credentials
+   *
+   * Credentials for an XMPP connection.
+   *
+   * Properties:
+   *   username - Username to authenticate against XMPP server.
+   *   password - Password to authenticate against XMPP server.
+   *   server     - Hostname of the XMPP server.
+   *   resource - XMPP resource string (ie. Home)
+   *   port     - Port to connect to.
+   */
+  privateClient.declareType('xmpp-credentials', {
+    type: 'object',
+    properties: {
+      actor: actorTemplate,
+      credentials: {
+        username: {
+          type: 'string',
+          required: true
+        },
+        password: {
+          type: 'string',
+          required: true
+        },
+        server: {
+          type: 'string',
+          required: true
+        },
+        resource: {
+          type: 'string',
+          required: true
+        },
+        port: {
+          type: 'number',
+          required: false
+        }
+      }
+    }
+  });
+
+  /**
+   * Schema: account.IRC-credentials
+   *
+   * Credentials for an IRC server.
+   *
+   * Properties:
+   *   nick     - Username to authenticate against IRC server.
+   *   password - Password to authenticate against IRC server.
+   *   server   - Hostname of the IRC server.
+   */
+  privateClient.declareType('irc-credentials', {
+    type: 'object',
+    properties: {
+      actor: actorTemplate,
+      credentials: {
+        nick: { type: 'string' },
+        password: { type: 'string' },
+        server: { type: 'string' }
+      }
+    }
+  });
+
+  function unpackURI(uri) {
+    var record = [];
+    record = uri.split(':',2);
+console.log('URI: '+uri+', ', record);
+    if (!record[1]) {
+      return false;
+    }
+
+    try {
+      record[1] = keyToAddress(record[1]);
+    } catch (e) {
+      console.log('unpackURI error: '+e);
+      return false;
+    }
+    return record;
+  }
+
+  function packURI(type, address) {
+    var uri = type + ':' + addressToKey(address);
+    console.log('packURI: '+uri);
+    return uri;
+  }
+
   function addressToKey(address) {
-    return address.replace(/@/g, '-at-') + '/';
+    return address.replace(/@/g, '-at-');
   }
 
   function keyToAddress(key) {
@@ -288,7 +385,8 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     }
 
     try {
-      return key.match(/^(.+?)\-at\-(.+)\/$/).slice(1).join('@');
+      var r = key.match(/^(.+?)\-at\-(.+)$/).slice(1).join('@');
+      return r;
     } catch(e) {
       console.error('WARNING: failed to convert key to address: ' + key);
     }
@@ -403,20 +501,20 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    */
 
   /**
-   * Public Method: openMessages
+   * Public Method: account
    *
    * returns a <Messages> object.
    */
-  var openMessages = function (accountString) {
-    if (messageCache[accountString]) {
-      return messageCache[accountString];
+  var account = function (accountURI) {
+    if (messageCache[accountURI]) {
+      return messageCache[accountURI];
     }
 
-    var messages = privateClient.scope('groups/' + encodeURIComponent(accountString) + '/');
-    messages.name = accountString;
+    var messages = privateClient.scope('groups/' + encodeURIComponent(accountURI) + '/');
+    messages.name = accountURI;
     messages.extend(messageMethods);
     messages.pool = messages.scope('pool/').extend(dateIndexMethods);
-    messageCache[accountString] = messages;
+    messageCache[accountURI] = messages;
     return messages;
   };
 
@@ -433,7 +531,6 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    * Property: pool
    *   Direct access to the message pool (a <DateIndexedScope>)
    */
-
   var messageMethods = {
 
     /**
@@ -442,7 +539,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
      * Takes a <message> object and stores it.
      */
     store: function (message) {
-      return this.pool.storeByDate('message', message.object.date, message.messageId, message).
+      return this.pool.storeByDate('message', message.object.date, message.object.messageId, message).
         then(function () {
           this.updateCounts( + 1 );
         }.bind(this));
@@ -466,12 +563,16 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         errors.push(error);
         oneDone();
       }.bind(this);
+
+
       messages.forEach(function (message) {
         this.pool.storeByDate('message', message.object.date, message.messageId, message).then(
           oneDone, oneFailed
         );
       }.bind(this));
-      if (n === 0) promise.fulfill();
+      if (n === 0) {
+        promise.fulfill();
+      }
       return promise;
     },
 
@@ -507,116 +608,101 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
   };
 
   return {
+
     exports: {
+
       credentials: privateClient.scope('credentials/').extend({
-        getCurrent: function () {
-          return this.getObject('current').then(function (account) {
-            return (account && account.address) ?
-              this.getAccount(account.address) : undefined;
-          }.bind(this));
-        },
 
-        setCurrent: function (account) {
-          return this.storeObject('account', 'current', account);
-        },
+        list: function (accountTypes) {
 
-        removeCurrent: function () {
-          return this.remove('current');
-        },
+          if (typeof accountTypes === 'string') {
+            accountTypes = [accountTypes];
+          }
 
-        listAccounts: function () {
           return this.getListing('').then(function (keys) {
-            return keys ? keys.map(keyToAddress).filter(function (address) {
-              return !! address;
-            }) : [];
-          });
-        },
-
-        getAccount: function (address) {
-          var accountScope = this.scope(addressToKey(address));
-          return accountScope.getListing('').then(function (keys) {
-            // don't return empty accounts, but instead 'undefined'.
-            if ((!keys) || (Object.keys(keys).length === 0)) {
-              return undefined;
-            } else {
+            var listing = [];
+            if (typeof keys === 'object') {
+              var keysArray = Object.keys(keys);
+              var keysLength = keysArray.length - 1;
               var promise = promising();
-              var items = {};
-              var n = keys.length, i = 0;
-              function oneDone(key, value) {
-                items[key] = value;
-                i++;
-                if(i === n) promise.fulfill(items);
-              }
-              keys.forEach(function (key) {
-                accountScope.getObject(key).then(function (value) {
-                  oneDone(key, value);
-                }, function (error) {
-                  console.error('failed to get account part \'' + key + '\': ', error, error.stack);
-                  oneDone(key, undefined);
-                });
+              keys.forEach(function (key, keyIndex) {
+                var record = unpackURI(key);
+                if (record) {
+                  if (!accountTypes) {
+                    // all accounts match
+                    listing.push(record);
+                  } else {
+                    // return listing of a specific account type
+                    if (accountTypes.indexOf(record[1]) < 0) {
+                      listing.push(record);
+                    }
+                  }
+                }
+
+                if (keysLength === keyIndex) {
+                  promise.fulfill(listing);
+                }
               });
               return promise;
+            } else {
+              return [];
             }
           });
         },
 
-        saveAccount: function (account) {
+        get: function (accountType, address) {
+          var uri;
+          if (!address) {
+            uri = addressToKey(accountType);
+          } else {
+            uri = packURI(accountType, address);
+          }
+
+          return this.getObject(uri);
+        },
+
+        save: function (accountType, account) {
           var promise = promising();
-          if (! account.actor.address) {
-            promise.reject(["Can't save account without actor.address!"]);
+          var validTypes = [ 'smtp', 'imap', 'xmpp', 'irc' ];
+
+          if (! accountType) {
+            promise.reject(['Can\'t save account without protocol accountType specified (first param)!']);
             return promise;
           }
-          var files = [];
-          [['account', 'actor'],
-           ['smtp-credentials', 'smtp'],
-           ['imap-credentials', 'imap']
-          ].forEach(function (fileDef) {
-            var obj = account[fileDef[1]];
-            if (obj) {
-              if (obj.port) {
-                obj.port = parseInt(obj.port);
-              }
-              files.push(fileDef.concat([obj]));
-            }
-          });
-          var accountScope = this.scope(addressToKey(account.actor.address));
-          var errors = [];
-          var n = files.length, i = 0;
-          function oneDone() {
-            i++;
-            if (i === n) {
-              promise.fulfill((errors.length > 0) ? errors : null, account);
-            }
+
+          if ((typeof account.actor !== 'object') ||
+              (! account.actor.address)) {
+            promise.reject(['Can\'t save account without actor.address property!']);
+            return promise;
           }
-          function oneFailed(error) {
-            errors.push(error);
-            oneDone();
+
+          if (typeof account.credentials !== 'object') {
+            promise.reject(['Can\'t save account without a credentials property!']);
+            return promise;
           }
-          for (var j=0; j < n; j++) {
-            accountScope.storeObject.apply(accountScope, files[j]).
-              then(oneDone, oneFailed);
+
+          if (validTypes.indexOf(accountType) < 0) {
+            promise.reject(['Invalid type '+accountType]);
+            return promise;
           }
-          return promise;
+
+          if (typeof account.credentials.port !== 'number') {
+            account.credentials.port = parseInt(account.credentials.port);
+          }
+
+          var uri = packURI(accountType, account.actor.address);
+
+          return this.storeObject(accountType + '-credentials', uri, account);
         },
 
-        removeAccount: function (address) {
-          var accountScope = this.scope(addressToKey(address));
-          return accountScope.getListing('').then(function (items) {
-            var promise = promising();
-            var n = items.length, i = 0;
-            var errors = [];
-            function oneDone() {
-              i++;
-              if (i === n) promise.fulfill(errors);
-            }
-            function oneFailed(error) {
-              errors.push(error);
-              oneDone();
-            }
-            items.forEach(function (item) {
-              accountScope.remove(item).then(oneDone, oneFailed);
-            });
-          });
+        remove: function (accountType, address) {
+          var uri;
+          if (!address) {
+            uri = addressToKey(accountType);
+          } else {
+            uri = packURI(accountType, address);
+          }
+          return privateClient.remove('credentials/'+uri);
         }
       }),
 
@@ -650,7 +736,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         }
       }),
 
-      openMessages: openMessages,
+      account: account,
 
       listMessageAccounts: function () {
         return privateClient.getListing('accounts/').then(function (list) {
