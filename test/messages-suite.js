@@ -267,8 +267,11 @@ define([], function () {
       {
         desc: '#account() opens a message group',
         run: function(env, test) {
-          var msgs = env.messages.account('smtp:max-at-muster.de');
-          test.assertType(msgs, 'object');
+          env.messages.account('smtp:max-at-muster.de').then(function (accountMsgs) {
+            test.assertType(accountMsgs, 'object');
+          }, function (err) {
+            test.fail(err);
+          });
         }
       }
 
@@ -280,10 +283,10 @@ define([], function () {
     desc: 'Representation of a message group',
     setup: function(env, test) {
       commonSetup(env);
-
-      env.msgGroup = env.messages.account('imap:max-at-muster.de');
-
-      test.done();
+      env.msgGroup = env.messages.account('imap:max-at-muster.de').then(function (accountMsgs) {
+        env.msgGroup = accountMsgs;
+        test.done();
+      });
     },
 
     tests: [

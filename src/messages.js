@@ -505,8 +505,10 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    * returns a <Messages> object.
    */
   var account = function (accountURI) {
+    var promise = promising();
     if (messageCache[accountURI]) {
-      return messageCache[accountURI];
+      promise.fulfill(messageCache[accountURI]);
+      return promise;
     }
     accountURI = addressToKey(accountURI);
 
@@ -515,7 +517,8 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     messages.extend(messageMethods);
     messages.pool = messages.scope('pool/').extend(dateIndexMethods);
     messageCache[accountURI] = messages;
-    return messages;
+    promise.fulfill(messages);
+    return promise;
   };
 
   /**
