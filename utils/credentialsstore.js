@@ -8,31 +8,36 @@ CredentialsStore = function(moduleName, privClient) {
     throw new Error('privClient should be a (private) base client');
   }
   function setConfig(pwd, config) {
-    if (typeof(pwd) !== 'string') {
-      throw new Error('password should be a string');
-    }
     if (typeof(config) !== 'object') {
       throw new Error('config should be an object');
     }
     if (!sjcl) {
       throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
     }
-    privClient.storeFile('application/json', moduleName+'-config', 
-        algorithmPrefix+sjcl.encrypt(pwd, JSON.stringify(config)));
+    config = JSON.stringify(config);
+    if(typeof(pwd) === 'string') {
+      config = algorithmPrefix+sjcl.encrypt(pwd, config);
+    }
+    privClient.storeFile('application/json', moduleName+'-config', config);
   }
   function getConfig(pwd) {
-    if (typeof(pwd) !== 'string') {
-      throw new Error('password should be a string');
-    }
     if (!sjcl) {
       throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
     }
     return privClient.getFile(moduleName+'-config').then(function(a) {
       if (typeof(a) === 'object' && typeof(a.data) === 'string') {
-        try {
-          a.data = sjcl.decrypt(pwd, a.data.substring(algorithmPrefix.length));
-        } catch(e) {
-          throw new Error('could not decrypt irc-config');
+        if (typeof(pwd) === 'string') {
+          try {
+            a.data = JSON.parse(sjcl.decrypt(pwd, a.data.substring(algorithmPrefix.length)));
+          } catch(e) {
+            throw new Error('could not decrypt irc-config');
+          }
+        } else {
+          try {
+            a.data = JSON.parse(a.data);
+          } catch(e) {
+            throw new Error('could not decrypt irc-config');
+          }
         }
       } else {
         throw new Error(moduleName+'-config not found');
