@@ -30,13 +30,13 @@ CredentialsStore = function(moduleName, privClient) {
           try {
             a.data = JSON.parse(sjcl.decrypt(pwd, a.data.substring(algorithmPrefix.length)));
           } catch(e) {
-            throw new Error('could not decrypt irc-config');
+            throw new Error('could not decrypt '+moduleName+'-config');
           }
         } else {
           try {
             a.data = JSON.parse(a.data);
           } catch(e) {
-            throw new Error('could not decrypt irc-config');
+            throw new Error('could not parse '+moduleName+'-config, try specifying a password for decryption');
           }
         }
       } else {
