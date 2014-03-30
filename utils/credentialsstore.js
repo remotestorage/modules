@@ -1,4 +1,6 @@
 CredentialsStore = function(moduleName, privClient) {
+  var algorithmPrefix =  'AES-CCM-128:';
+  
   if (typeof(moduleName) !== 'string') {
     throw new Error('moduleName should be a string');
   }
@@ -16,7 +18,7 @@ CredentialsStore = function(moduleName, privClient) {
       throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
     }
     privClient.storeFile('application/json', moduleName+'-config', 
-        sjcl.encrypt(pwd, JSON.stringify(config)));
+        algorithmPrefix+sjcl.encrypt(pwd, JSON.stringify(config)));
   }
   function getConfig(pwd) {
     if (typeof(pwd) !== 'string') {
@@ -28,7 +30,7 @@ CredentialsStore = function(moduleName, privClient) {
     return privClient.getFile(moduleName+'-config').then(function(a) {
       if (typeof(a) === 'object' && typeof(a.data) === 'string') {
         try {
-          a.data = sjcl.decrypt(pwd, a.data);
+          a.data = sjcl.decrypt(pwd, a.data.substring(algorithmPrefix.length));
         } catch(e) {
           throw new Error('could not decrypt irc-config');
         }
