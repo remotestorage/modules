@@ -1,21 +1,8 @@
 RemoteStorage.defineModule('twitter', function(privClient, pubClient) {
-
-  function setConfig(pwd, config) {
-    privClient.storeFile('application/json', 'twitter-config', 
-        sjcl.encrypt(pwd, JSON.stringify(config)));
-  }
-  function getConfig(pwd) {
-    return privClient.getFile('twitter-config').then(function(a) {
-      if (typeof(a) === 'object' && typeof(a.data) === 'string') {
-        a.data = sjcl.decrypt(pwd, a.data);
-      }
-      return a;
-    });
+  if(!CredentialsStore) {
+    throw new Error('please include utils/credentialsstore.js');
   }
   return {
-    exports: {
-      setConfig: setConfig,
-      getConfig: getConfig
-    }
+    exports: CredentialsStore('twitter', privClient)
   };
 });

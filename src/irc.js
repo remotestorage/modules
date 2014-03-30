@@ -4,5 +4,5 @@ RemoteStorage.defineModule('irc', function(privClient, pubClient) {
   }
   return {
     exports: CredentialsStore('irc', privClient)
-  };  
+  };
 });
