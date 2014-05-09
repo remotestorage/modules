@@ -15,7 +15,12 @@ CredentialsStore = function(moduleName, privClient) {
       throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
     }
     config['@context'] = 'http://remotestorage.io/spec/modules/'+moduleName+'/config';
-    privClient.validate(config);
+    var validationResult = privClient.validate(config);
+    if (!validationResult.valid) {
+      var promise = promising();
+      promise.reject('Please follow the config schema');
+      return promise;
+    }
     config = JSON.stringify(config);
     if(typeof(pwd) === 'string') {
       config = algorithmPrefix+sjcl.encrypt(pwd, config);

@@ -29,7 +29,11 @@ define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.sockethub.setConfig(undefined, env.configBad).then(test.done, function () {
+          env.sockethub.setConfig(undefined, env.configBad).then(function(res) {
+            console.log('33', res);
+            test.done();
+          }, function (err) {
+            console.log('36', err);
             test.result(false);
           });
         }
