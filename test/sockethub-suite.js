@@ -1,4 +1,5 @@
 require('./test/dependencies');
+require('./src/utils/credentialsstore');
 require('./src/sockethub');
 define(['require'], function(require) {
   var suites = [];
