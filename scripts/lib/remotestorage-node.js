@@ -2754,7 +2754,7 @@ Math.uuid = function (len, radix) {
     },
 
     _defaultTypeURI: function(alias) {
-      return 'http://remotestoragejs.com/spec/modules/' + this.moduleName + '/' + alias;
+      return 'http://remotestorage.io/spec/modules/' + this.moduleName + '/' + alias;
     },
 
     _attachType: function(object, alias) {

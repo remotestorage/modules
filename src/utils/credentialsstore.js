@@ -11,17 +11,19 @@ CredentialsStore = function(moduleName, privClient) {
     if (typeof(config) !== 'object') {
       throw new Error('config should be an object');
     }
-    if (!sjcl) {
+    if (pwd && !sjcl) {
       throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
     }
+    config['@context'] = 'http://remotestorage.io/spec/modules/'+moduleName+'/config';
+    privClient.validate(config);
     config = JSON.stringify(config);
     if(typeof(pwd) === 'string') {
       config = algorithmPrefix+sjcl.encrypt(pwd, config);
     }
-    privClient.storeFile('application/json', moduleName+'-config', config);
+    return privClient.storeFile('application/json', moduleName+'-config', config);
   }
   function getConfig(pwd) {
-    if (!sjcl) {
+    if (pwd && !sjcl) {
       throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
     }
     return privClient.getFile(moduleName+'-config', false).then(function(a) {
@@ -42,7 +44,7 @@ CredentialsStore = function(moduleName, privClient) {
       } else {
         throw new Error(moduleName+'-config not found');
       }
-      return a;
+      return a.data;
     });
   }
   return {

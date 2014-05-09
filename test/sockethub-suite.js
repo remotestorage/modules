@@ -1,7 +1,8 @@
 require('./test/dependencies');
-require('./src/utils/credentialsstore');
-require('./src/sockethub');
-define(['require'], function(require) {
+define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
+  require('../src/utils/credentialsstore');
+  require('../src/sockethub');
+
   var suites = [];
 
   suites.push({
@@ -28,7 +29,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.sockethub.writeConfig(env.configBad).then(test.done, function () {
+          env.sockethub.setConfig(undefined, env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -37,16 +38,17 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.sockethub.writeConfig(env.config).then(test.done, function () {
+          env.sockethub.setConfig(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
       },
 
       {
-        desc: "set config.json",
+        desc: "get config.json",
         run: function (env, test) {
-          env.sockethub.getConfig().then(function (d) {
+          env.sockethub.getConfig(undefined).then(function (d) {
+            console.log('got', d);
             test.assert(d, env.config);
           }, function () {
             test.result(false);
