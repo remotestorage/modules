@@ -1,4 +1,4 @@
-var PrefixTree = function(baseClient) {
+PrefixTree = function(baseClient) {
   var maxLeaves=5, minDepth=1;
   //for key=='abcdefgh',
   // depth -> base + itemName:

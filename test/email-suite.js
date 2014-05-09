@@ -1,4 +1,7 @@
 require('./test/dependencies');
+
+require('./src/utils/credentialsstore');
+require('./src/utils/prefixtree');
 require('./src/email');
 define([], function() {
 

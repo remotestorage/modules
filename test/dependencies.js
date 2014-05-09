@@ -11,5 +11,6 @@ try {
   process.exit(127);
 }
 
+require('./scripts/lib/sjcl');
 require('./scripts/lib/remotestorage-node');
 global.remoteStorage = new RemoteStorage();
