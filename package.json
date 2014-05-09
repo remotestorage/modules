@@ -15,9 +15,9 @@
     "localStorage": "*"
   },
   "devDependencies": {
-    "teste": "*"
+    "jaribu": "0.1.x"
   },
   "scripts": {
-    "test": "node_modules/.bin/teste"
+    "test": "node_modules/jaribu/bin/jaribu"
   }
 }
