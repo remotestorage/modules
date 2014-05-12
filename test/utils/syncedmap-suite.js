@@ -12,10 +12,10 @@ define(['require'], function(require) {
     setup: function (env, test) {
       console.log(SyncedMap, PrefixTree);
       env.baseClient = {
-        cache: function() {},
+        on: function() {},
         scope: function() {
           return {
-            cache: function() {},
+            on: function() {},
             getListing: function(path, maxAge) {
               return env.responses[['getListing', path, maxAge]];
             }
@@ -32,6 +32,7 @@ define(['require'], function(require) {
         run: function (env, test) {
           var res;
           console.log('syncedMap', env.syncedMap);
+          test.done();//TODO: write some tests here
           env.syncedMap.load();
           env.syncedMap.set('a', 'b');
           res = env.syncedMap.get('a');

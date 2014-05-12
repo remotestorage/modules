@@ -1,6 +1,6 @@
 function SyncedMap(name, baseClient) {
   var data = {}, prefixTree = PrefixTree(baseClient.scope(name+'/'));
-  prefixTree.cache('', 'ALL');
+  //prefixTree.cache('', 'ALL');
   prefixTree.on('change', function(e) {
     if(e.origin != 'window') {
       data[e.key] = e.newValue;
