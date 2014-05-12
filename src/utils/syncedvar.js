@@ -25,3 +25,7 @@ function SyncedVar(name, baseClient) {
     }
   };
 }
+
+if (global) {
+  global.SyncedVar = SyncedVar;
+}

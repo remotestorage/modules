@@ -167,3 +167,7 @@ PrefixTree = function(baseClient) {
     }
   };
 };
+
+if (global) {
+  global.PrefixTree = PrefixTree;
+}

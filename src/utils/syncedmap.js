@@ -30,3 +30,7 @@ function SyncedMap(name, baseClient) {
     }
   };
 }
+
+if (global) {
+  global.SyncedMap = SyncedMap;
+}
