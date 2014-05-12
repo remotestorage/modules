@@ -28,19 +28,22 @@ define([], function() {
           name: "Max Muster",
           address: "max@muster.de"
         },
-        smtp: {
-          host: "smtp.muster.de",
-          port: 25,
-          secure: true,
-          username: "max",
-          password: "unguessable"
-        },
-        imap: {
-          host: "imap.muster.de",
-          port: 993,
-          secure: true,
-          username: "max",
-          password: "unguessable"
+        object: {
+          objectType: 'credentials',
+          smtp: {
+            host: "smtp.muster.de",
+            port: 25,
+            tls: true,
+            username: "max",
+            password: "unguessable"
+          },
+          imap: {
+            host: "imap.muster.de",
+            port: 993,
+            tls: true,
+            username: "max",
+            password: "unguessable"
+          }
         }
       };
 

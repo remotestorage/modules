@@ -18,7 +18,7 @@ CredentialsStore = function(moduleName, privClient) {
     var validationResult = privClient.validate(config);
     if (!validationResult.valid) {
       var promise = promising();
-      promise.reject('Please follow the config schema');
+      promise.reject('Please follow the config schema - ' + JSON.stringify(validationResult));
       return promise;
     }
     config = JSON.stringify(config);

@@ -15,30 +15,37 @@ RemoteStorage.defineModule('email', function(privClient, pubClient) {
         },
         required: ['name', 'address']
       },
-      imap: {
+      object: {
         type: 'object',
         properties: {
-          host: { type: 'string' },
-          port: { type: 'number' },
-          secure: { type: 'boolean' },
-          username: { type: 'string' },
-          password: { type: 'string' }
+          objectType: 'credentials',
+          imap: {
+            type: 'object',
+            properties: {
+              host: { type: 'string' },
+              port: { type: 'number' },
+              tls: { type: 'boolean' },
+              username: { type: 'string' },
+              password: { type: 'string' }
+            },
+            required: ['host', 'port', 'tls', 'username', 'password']
+          },
+          smtp: {
+            type: 'object',
+            properties: {
+              host: { type: 'string' },
+              port: { type: 'number' },
+              tls: { type: 'boolean' },
+              username: { type: 'string' },
+              password: { type: 'string' }
+            },
+            required: ['host', 'port', 'tls', 'username', 'password']
+          }
         },
-        required: ['host', 'port', 'secure', 'username', 'password']
-      },
-      smtp: {
-        type: 'object',
-        properties: {
-          host: { type: 'string' },
-          port: { type: 'number' },
-          secure: { type: 'boolean' },
-          username: { type: 'string' },
-          password: { type: 'string' }
-        },
-        required: ['host', 'port', 'secure', 'username', 'password']
+        required: ['objectType']
       }
     },
-    required: ['actor']
+    required: ['actor', 'object']
   });
 
   function mergeObjects(existing, adding) {
