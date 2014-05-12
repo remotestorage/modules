@@ -10,10 +10,14 @@ define(['require'], function(require) {
   suites.push({
     desc: 'SyncedVar suite',
     setup: function (env, test) {
-      //console.log(SyncedVar);
       env.baseClient = {
-        getListing: function(path, maxAge) { return env.responses[['getListing', path, maxAge]]; },
-        on: function() {}
+        getFile: function(path, maxAge) { return env.responses[['getFile', path, maxAge]]; },
+        storeFile: function(path, maxAge) { return env.responses[['storeFile', path, maxAge]]; },
+        on: function(eventName, handler) { env.handlers[eventName].push(handler);}
+      };
+      env.responses = {};
+      env.handlers = {
+        change: []
       };
       env.syncedVar = new SyncedVar('foo', env.baseClient);
       test.done();
@@ -23,12 +27,46 @@ define(['require'], function(require) {
       {
         desc: "load, set, get",
         run: function (env, test) {
-          var res;
-          console.log('syncedVar', env.syncedVar);
-  test.done();        env.syncedVar.load();
-          env.syncedVar.set('b');
+          var res, storeFilePromise = promising(), getFilePromise = promising();
+          env.responses[ ['storeFile', 'foo', 'bar'] ] = storeFilePromise;
+          env.responses[ ['getFile', 'foo', false] ] = getFilePromise;
+          env.syncedVar.load();
+          getFilePromise.fulfill({
+            data: 'initial value',
+            mimeType: 'initial content type'
+          });
+          env.handlers['change'][0]({
+            newValue: 'incoming value',
+            newContentType: 'incoming content type',
+            origin: 'remote'
+          });
+          env.syncedVar.set('bar');
+          storeFilePromise.fulfill();
           res = env.syncedVar.get();
-          test.assertAnd(res, 'b');
+          test.assertAnd(res, 'bar');
+          test.done();
+        }
+      },
+
+      {
+        desc: "incoming updates",
+        run: function (env, test) {
+          var res, storeFilePromise = promising(), getFilePromise = promising();
+          env.responses[ ['storeFile', 'foo', 'bar'] ] = storeFilePromise;
+          env.responses[ ['getFile', 'foo', false] ] = getFilePromise;
+          env.syncedVar.load();
+          getFilePromise.fulfill({
+            data: 'initial value',
+            mimeType: 'initial content type'
+          });
+          env.handlers['change'][0]({
+            origin: 'remote',
+            relativePath: 'foo',
+            newValue: 'incoming value',
+            newContentType: 'incoming content type'
+          });
+          res = env.syncedVar.get();
+          test.assertAnd(res, 'incoming value');
           test.done();
         }
       }
