@@ -1,27 +1,31 @@
 require('./test/dependencies');
 define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
   requireAndLoad('./src/utils/credentialsstore', 'CredentialsStore');
-  requireAndLoad('./src/sockethub', 'remoteStorage.sockethub');
+  requireAndLoad('./src/irc', 'remoteStorage.irc');
 
   var suites = [];
 
   suites.push({
-    desc: 'sockethub',
+    desc: 'irc',
     setup: function (env, test) {
       env.config = {
-        host: 'example.com',
-        port: 829,
-        path: '/sockethub',
-        ssl: true,
-        tls: true,
-        register: { secret: '123' }
+        actor: {
+          address: 'myircnick',
+          name: 'My IRC Nick'
+        },
+        object: {
+          nick: 'myircnick',
+          objectType: 'credentials',
+          server: 'example.com',
+          password: '',
+        }
       };
       env.configBad = {
         host: false,
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.sockethub = remoteStorage.sockethub;
+      env.irc = remoteStorage.irc;
       test.done();
     },
     tests: [
@@ -30,7 +34,7 @@ define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.sockethub.setConfig(undefined, env.configBad).then(function(res) {
+          env.irc.setConfig(undefined, env.configBad).then(function(res) {
             console.log('33', res);
             test.done();
           }, function (err) {
@@ -43,7 +47,7 @@ define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.sockethub.setConfig(undefined, env.config).then(test.done, function () {
+          env.irc.setConfig(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
@@ -52,7 +56,7 @@ define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
       {
         desc: "get config.json",
         run: function (env, test) {
-          env.sockethub.getConfig(undefined).then(function (d) {
+          env.irc.getConfig(undefined).then(function (d) {
             console.log('got', d);
             test.assert(d, env.config);
           }, function () {

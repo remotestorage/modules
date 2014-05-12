@@ -1,614 +1,141 @@
-/**
- * File: Email
- *
- * Maintainer: - Niklas E. Cathor <nilclass@riseup.net>
- * Version:    - 0.1.0
- *
- * This module stores email messages and drafts, as well as credentials for
- * SMTP and IMAP servers.
- */
+RemoteStorage.defineModule('email', function(privClient, pubClient) {
+  if(!CredentialsStore) {
+    throw new Error('please include utils/credentialsstore.js');
+  }
+  var credentialsStore = CredentialsStore('email', privClient);
 
-RemoteStorage.defineModule('email', function(privateClient, publicClient) {
-
-  /**
-   * Using the mailbox index:
-   *
-   *
-   *
-   *   email.mailbox('inbox').store({
-   *     date: ...
-   *     subject: ...
-   *     body: ...
-   *     to: [
-   *       {
-   *         name: ...
-   *         address: ...
-   *       }
-   *     ]
-   *   });
-   *   // will store at:
-   *   //   /email/mailbox/inbox/pool/<year>/<month>/<day>/
-   *   //     <hour>-<minute>-<second>-<message-id>
-   *
-   *   email.mailbox('inbox').list({
-   *     limit: 50,
-   *     order: 'desc'
-   *   });
-   *   // returns the 50 latest messages (this is also the defaults)
-   *
-   *   email.mailbox('sent').list({
-   *     limit: 5,
-   *     order: 'asc'
-   *   });
-   *   // returns the 5 oldest messages from 'sent' folder
-   *
-   */
-
-  /**
-   * Schema: email.recipient
-   *
-   * Represents a recipient of a message.
-   *
-   * Properties:
-   *   name    - Name of the recipient
-   *   address - RFC822 compliant address (i.e. an email address)
-   */
-
-  /**
-   * Schema: email.draft
-   *
-   * Represents a saved message that hasn't been sent yet.
-   *
-   * Properties:
-   *   from    - Sender of the message. Same properties as <email.recipient>.
-   *   to      - Array of <email.recipient> objects.
-   *   cc      - Array of carbon copy recipients (<email.recipient> objects).
-   *   bcc     - Array of blind carbon copy recipients (<email.recipient> objects).
-   *   subject - Message subject (a String).
-   *   body    - Message body (a String).
-   *   date    - Message date. For a draft this is set to last time
-   *             the draft was saved.
-   */
-  privateClient.declareType('draft', {
+  privClient.declareType('config', {
     type: 'object',
     properties: {
-
-      from: {
+      actor: {
         type: 'object',
         properties: {
-          name: {
-            type: 'string'
+          name: { type: 'string' },
+          address: { type: 'string' },
+        },
+        required: ['name', 'address']
+      },
+      object: {
+        type: 'object',
+        properties: {
+          objectType: {type: 'string', 'enum': ['credentials'] },
+          imap: {
+            type: 'object',
+            properties: {
+              host: { type: 'string' },
+              port: { type: 'number' },
+              tls: { type: 'boolean' },
+              username: { type: 'string' },
+              password: { type: 'string' }
+            },
+            required: ['host', 'port', 'tls', 'username', 'password']
           },
-          address: {
-            type: 'string'
-          }
-        }
-      },
-
-      to: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            name: {
-              type: "string",
-              required: true
+          smtp: {
+            type: 'object',
+            properties: {
+              host: { type: 'string' },
+              port: { type: 'number' },
+              tls: { type: 'boolean' },
+              username: { type: 'string' },
+              password: { type: 'string' }
             },
-            address: {
-              type: "string",
-              required: true
-            }
+            required: ['host', 'port', 'tls', 'username', 'password']
+          }
+        },
+        required: ['objectType']
+      }
+    },
+    required: ['actor', 'object']
+  });
+
+  function mergeObjects(existing, adding) {
+    var i;
+    if((typeof(adding) != 'object') || (typeof(existing) != 'object')) {
+      return existing;
+    }
+    if(Array.isArray(existing)) {
+      if(Array.isArray(adding)) {
+        for(i=0; i<adding.length; i++) {
+          if(existing.indexOf(adding[i]) == -1) {
+            existing.push(adding[i]);
           }
         }
-      },
-
-      cc: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            name: {
-              type: "string",
-              required: true
-            },
-            address: {
-              type: "string",
-              required: true
-            }
-          }
-        }
-      },
-
-      bcc: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            name: {
-              type: "string",
-              required: true
-            },
-            address: {
-              type: "string",
-              required: true
-            }
-          }
-        }
-      },
-
-      subject: {
-        type: 'string'
-      },
-
-      body: {
-        type: 'string'
-      },
-
-      date: {
-        type: 'date'
-      },
-
-      encrypt: {
-        type: 'boolean',
-        'default': false
-      },
-
-      sign: {
-        type: 'boolean',
-        'default': false
+        return existing;
+      } else {
+        return Array.concat(existing, [adding]);
       }
     }
-  });
-
-  /**
-   * Schema: email.message
-   *
-   * Represents a received or sent message.
-   *
-   * Inherits from <email.draft>.
-   *
-   * Requires the following properties to be set:
-   *  - <email.draft.to>,
-   *  - <email.draft.subject>,
-   *  - <email.draft.body> and
-   *  - <email.draft.date>
-   */
-  privateClient.declareType('message', {
-    extends: 'draft',
-    required: ['to', 'subject', 'body', 'date']
-  });
-
-  /**
-   * Schema: email.account
-   *
-   * Represents an account's basic metadata.
-   *
-   * Properties:
-   *   name    - The account owner's name.
-   *             This name is used as the sender name for outgoing messages.
-   *   address - The address associated with this account.
-   *             Will be used as the sender address for outgoing messages.
-   *
-   */
-  privateClient.declareType('account', {
-    type: 'object',
-    properties: {
-      name: { type: 'string' },
-      address: { type: 'string' }
+    if(Array.isArray(adding)) {
+      return existing;
     }
-  });
-
-  /**
-   * Schema: email.smtp-credentials
-   *
-   * Credentials for a SMTP server.
-   *
-   * Properties:
-   *   host     - Hostname of the SMTP server.
-   *   username - Username to authenticate against SMTP server.
-   *   password - Password to authenticate against SMTP server.
-   *   port     - Port to connect to.
-   *   secure   - Boolean flag to turn on TLS / SSL.
-   */
-  privateClient.declareType('smtp-credentials', {
-    type: 'object',
-    properties: {
-      host: { type: 'string' },
-      username: { type: 'string' },
-      password: { type: 'string' },
-      port: { type: 'number' },
-      secure: { type: 'boolean' },
-    }
-  });
-
-  /**
-   * Schema: email.imap-credentials
-   *
-   * Credentials for an IMAP server.
-   *
-   * Properties:
-   *   host     - Hostname of the IMAP server.
-   *   username - Username to authenticate against IMAP server.
-   *   password - Password to authenticate against IMAP server.
-   *   port     - Port to connect to.
-   *   secure   - Boolean flag to turn on TLS / SSL.
-   */
-  privateClient.declareType('imap-credentials', {
-    type: 'object',
-    properties: {
-      host: { type: 'string' },
-      username: { type: 'string' },
-      password: { type: 'string' },
-      port: { type: 'number' },
-      secure: { type: 'boolean' },
-    }
-  });
-
-  function addressToKey(address) {
-    return address.replace(/@/g, '-at-') + '/';
-  }
-
-  function keyToAddress(key) {
-    if(key == 'current') return;
-    try {
-      return key.match(/^(.+?)\-at\-(.+)\/$/).slice(1).join('@');
-    } catch(e) {
-      console.error("WARNING: failed to convert key ot address: " + key);
-    }
-  }
-
-  function sortAsc(a, b) { return a > b ? -1 : b > a ? 1 : 0; }
-  function sortDesc(a, b) { return a < b ? -1 : b < a ? 1 : 0; }
-
-  var dateIndexMethods = {
-    byDate: function(direction, limit) {
-      console.log('byDate', arguments);
-      var result = [];
-      var sort = function(a) {
-        return a ? a.sort('asc' ? sortAsc : sortDesc) : [];
-      };
-
-      if(! limit) throw "Limit not given";
-
-      // FIXME: all this can be greatly simplified by abstraction.
-
-      var fetchYear = function(years) {
-        var year = years.shift();
-        return this.getListing(year).
-          then(sort).
-          then(function(months) {
-            return fetchMonth(year, months);
-          }).
-          then(function() {
-            if(result.length < limit && years.length > 0) return fetchYear(years);
-          });
-      }.bind(this);
-
-      var fetchMonth = function(year, months) {
-        var month = months.shift();
-        return this.getListing(year + month).
-          then(sort).
-          then(function(days) {
-            return fetchDay(year, month, days);
-          }).
-          then(function() {
-            if(result.length < limit && months.length > 0) return fetchMonth(year, months);
-          });
-      }.bind(this);
-
-      var fetchDay = function(year, month, days) {
-        var day = days.shift();
-        return this.getListing(year + month + day).
-          then(sort).
-          then(function(messageIds) {
-            return fetchMessage(year, month, day, messageIds);
-          }).
-          then(function() {
-            if(result.length < limit && days.length > 0) return fetchDay(year, month, days);
-          });
-      }.bind(this);
-
-      var fetchMessage = function(year, month, day, messageIds) {
-        var messageId = messageIds.shift();
-        var path = year + month + day + messageId;
-        return this.getObject(path).then(function(message) {
-          if(message) {
-            message.path = path;
-            result.push(message);
-          }
-        }).then(function() {
-          if(result.length < limit && messageIds.length > 0) return fetchMessage(year, month, day, messageIds);
-        });
-      }.bind(this);
-
-      return this.getListing().then(sort).then(fetchYear).
-        then(function() {
-          return result;
-        });
-    },
-
-    storeByDate: function(type, date, id, object) {
-      this._attachType(object, type);
-      var result = this.validate(object);
-      if(result.error) {
-        console.log('validation result', result);
-        throw result.error;
+    for(i in adding) {
+      if(typeof(adding[i]=='object') && typeof(existing[i])) {
+        existing[i]=mergeObjects(existing[i], adding[i]);
       }
-      if(typeof(date) == 'string') {
-        date = new Date(Date.parse(date));
-      } else if(typeof(date) == 'number') {
-        date = new Date(date);
+      if(!existing[i]) {
+        existing[i] = adding[i];
       }
-      var basePath = [
-        date.getUTCFullYear(),
-        date.getUTCMonth() + 1,
-        date.getUTCDate()
-      ].join('/');
-      var fileName = [
-        date.getUTCHours(),
-        date.getUTCMinutes(),
-        date.getUTCSeconds()
-      ].join('-') + '-' + id;
-      console.log('storing under', basePath + '/' + encodeURIComponent(fileName));
-      return this.storeObject(type, basePath + '/' + encodeURIComponent(fileName), object);
     }
-  };
-
-  var mailboxCache = {};
-
-  /**
-   * Export: mailbox
-   */
-
-  /**
-   * Public Method: openMailbox
-   *
-   * returns a <Mailbox>.
-   */
-  var openMailbox = function(name) {
-    if(mailboxCache[name]) return mailboxCache[name];
-    var mailbox = privateClient.scope('mailbox/' + encodeURIComponent(name) + '/');
-    mailbox.name = name;
-    mailbox.extend(mailboxMethods);
-    mailbox.pool = mailbox.scope('pool/').extend(dateIndexMethods);
-    mailboxCache[name] = mailbox;
-    return mailbox;
+    return existing;
   }
 
-  /**
-   * Class: Mailbox
-   *
-   *   Represents a mailbox.
-   *
-   *
-   * Property: name
-   *   Name of the mailbox
-   *
-   *
-   * Property: pool
-   *   Direct access to the message pool (a <DateIndexedScope>)
-   */
-
-  var mailboxMethods = {
-
-    /**
-     * Method: store
-     *
-     * Takes a <email.message> object and stores it.
-     */
-    store: function(message) {
-      return this.pool.storeByDate('message', message.date, message.messageId, message).
-        then(function() {
-          this.updateCounts( + 1 );
-        }.bind(this));
-    },
-
-    storeAll: function(messages) {
-      var n = messages.length, i = 0;
-      var promise = promising();
-      var errors = [];
-      var oneDone = function() {
-        console.log('saved ' + i + '/' + n + ' messages.');
-        i++;
-        if(i === n) {
-          this.updateCounts( + n ).then(function() {
-            promise.fulfill(errors.length > 0 ? errors : null);
-          });
-        }
-      }.bind(this);
-      var oneFailed = function(error) {
-        console.log('failed', error);
-        errors.push(error);
-        oneDone();
-      }.bind(this);
-      messages.forEach(function(message) {
-        this.pool.storeByDate('message', message.date, message.messageId, message).then(
-          oneDone, oneFailed
-        );
-      }.bind(this));
-      if(n == 0) promise.fulfill();
-      return promise;
-    },
-
-    updateCounts: function(step) {
-      return this.getFile('count').then(function(file) {
-        return this.storeFile('text/plain', 'count', String((parseInt(file.data) || 0) + step));
-      }.bind(this));
-    },
-
-    getCount: function() {
-      return this.getFile('count').then(function(file) {
-        return parseInt(file.data) || 0;
-      });
-    },
-
-    /**
-     *
-     */
-    list: function(options) {
-      if(! options) options = {};
-      return this.pool.byDate(
-        options.order || 'desc',
-        options.limit || 50
-      );
-    },
-
-    unread: function() {
-      return this.getObject('unread-index');
-    }
-  };
-
+  var messages = PrefixTree(privClient.scope('messages/'));
   return {
     exports: {
-      credentials: privateClient.scope('credentials/').extend({
-        getCurrent: function() {
-          return this.getObject('current').then(function(account) {
-            return (account && account.address) ?
-              this.getAccount(account.address) : undefined;
-          }.bind(this));
-        },
-
-        setCurrent: function(account) {
-          return this.storeObject('account', 'current', account);
-        },
-
-        removeCurrent: function() {
-          return this.remove('current');
-        },
-
-        listAccounts: function() {
-          return this.getListing('').then(function(keys) {
-            return keys ? keys.map(keyToAddress).filter(function(address) {
-              return !! address;
-            }) : [];
-          });
-        },
-
-        getAccount: function(address) {
-          var accountScope = this.scope(addressToKey(address));
-          return accountScope.getListing('').then(function(keys) {
-            // don't return empty accounts, but instead 'undefined'.
-            if((!keys) || Object.keys(keys).length === 0) {
-              return undefined;
-            } else {
-              var promise = promising();
-              var items = {};
-              var n = keys.length, i = 0;
-              function oneDone(key, value) {
-                items[key] = value;
-                i++;
-                if(i == n) promise.fulfill(items);
+      _init: function() {
+        privClient.cache('', 'ALL');
+      },
+      getMessage: function(msgId) {
+        return messages.getObject(msgId);
+      },
+      getMessageIds: function(prefix) {
+        return messages.getKeysAndDirs(prefix || '');
+      },
+      getImapBoxIndex: function(account, box) {
+        return privClient.getAll('imap/'+account+'/'+box+'/', false);
+      },
+      getNextMissingSequence: function(account, box) {
+        return privClient.getAll('imap/'+account+'/'+box+'/', false).then(
+          function(map) {
+            var i, highest=0, start;
+            for(i in map) {
+              if(parseInt(i)>highest) {
+                highest = i;
               }
-              keys.forEach(function(key) {
-                accountScope.getObject(key).then(function(value) {
-                  oneDone(key, value);
-                }, function(error) {
-                  console.error("failed to get account part '" + key + "': ", error, error.stack);
-                  oneDone(key, undefined);
-                });
-              });
-              return promise;
+              console.log('highest? ', i, highest);
             }
-          });
-        },
-
-        saveAccount: function(account) {
-          var promise = promising();
-          if(! account.actor.address) {
-            promise.reject(["Can't save account without actor.address!"]);
-            return promise;
+            for(i=highest;i>=0;i--) {
+              if(map[i] || i===0) {
+                if(start) {
+                  return 'highest:'+highest+', start:'+start+', end:'+(parseInt(i)+1)
+                    +', suggestion: document.fetchEmails('+(1+Math.floor((highest-start)/10))+', '+10+', false);';
+                }
+              } else {
+                if(!start) {
+                  start = parseInt(i);
+                }
+              }
+            }
+            return 'up to date! highest:'+highest+', start:'+start+', end:'+(parseInt(i)+1)+', map:'+JSON.stringify(map);
           }
-          var files = [];
-          [['account', 'actor'],
-           ['smtp-credentials', 'smtp'],
-           ['imap-credentials', 'imap']
-          ].forEach(function(fileDef) {
-            var obj = account[fileDef[1]];
-            if(obj) {
-              if(obj.port) { obj.port = parseInt(obj.port); }
-              files.push(fileDef.concat([obj]));
-            }
-          });
-          var accountScope = this.scope(addressToKey(account.actor.address));
-          var errors = [];
-          var n = files.length, i = 0;
-          function oneDone() {
-            i++;
-            if(i == n) {
-              promise.fulfill(errors.length > 0 ? errors : null, account);
-            }
-          }
-          function oneFailed(error) {
-            errors.push(error);
-            oneDone();
-          }
-          for(var j=0;j<n;j++) {
-            accountScope.storeObject.apply(accountScope, files[j]).
-              then(oneDone, oneFailed);
-          }
-          return promise;
-        },
-
-        removeAccount: function(address) {
-          var accountScope = this.scope(addressToKey(address));
-          return accountScope.getListing('').then(function(items) {
-            var promise = promising();
-            var n = items.length, i = 0;
-            var errors = [];
-            function oneDone() {
-              i++;
-              if(i == n) promise.fulfill(errors);
-            }
-            function oneFailed(error) {
-              errors.push(error);
-              oneDone();
-            }
-            items.forEach(function(item) {
-              accountScope.remove(item).then(oneDone, oneFailed);
-            });
-          });
-        }
-      }),
-
-      /**
-       * Object: email.drafts
-       */
-      drafts: privateClient.scope('drafts/').extend({
-        /**
-         * Method: getLatest
-         *
-         * Get latest draft.
-         */
-        getLatest: function() {
-          return this.getObject('latest');
-        },
-
-        /**
-         * Method: saveLatest
-         *
-         * Save given draft as latest one.
-         *
-         * Parameters:
-         *   draft - A <email.draft> Object
-         */
-        saveLatest: function(draft) {
-          return this.storeObject('draft', 'latest', draft);
-        },
-
-        removeLatest: function() {
-          return this.remove('latest');
-        }
-      }),
-
-      openMailbox: openMailbox,
-
-      listMailboxes: function() {
-        return privateClient.getListing('mailbox/').then(function(list) {
-          return (list||[]).map(function(item) {
-            return item.replace(/\/$/, '');
+        );
+      },
+      storeMessage: function(msgId, obj, accountName) {
+        var existing = messages.getObject(msgId) || {},
+          merge = JSON.parse(JSON.stringify(mergeObjects(existing, obj)));//to avoid DataCloneError
+        //console.log('merged', existing, obj, merge);
+        return messages.storeObject('message', msgId, merge).then(function() {
+          return privClient.storeObject('imapSeqno-to-messageId', 'imap/'+obj.object.imapAccountName+'/'+obj.object.imapBoxName+'/'+obj.object.imapSeqNo, {
+            account: accountName,
+            box: 'INBOX',
+            seqNo: obj.object.imapSeqNo,
+            messageId: msgId
           });
         });
-      }
+      },
+      setConfig: credentialsStore.setConfig,
+      getConfig: credentialsStore.getConfig
     }
   };
 });
+remoteStorage.email._init();
