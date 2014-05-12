@@ -1,5 +1,5 @@
 require('./test/dependencies');
-require('./src/messages');
+requireAndLoad('./src/messages', 'remoteStorage.messages');
 
 define([], function () {
 

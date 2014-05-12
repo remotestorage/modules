@@ -1,7 +1,7 @@
 require('./test/dependencies');
 define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
-  require('../src/utils/credentialsstore');
-  require('../src/irc');
+  requireAndLoad('./src/utils/credentialsstore', 'CredentialsStore');
+  requireAndLoad('./src/irc', 'remoteStorage.irc');
 
   var suites = [];
 

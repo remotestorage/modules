@@ -1,7 +1,7 @@
 require('./test/dependencies');
 define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
-  require('../src/utils/credentialsstore');
-  require('../src/sockethub');
+  requireAndLoad('./src/utils/credentialsstore', 'CredentialsStore');
+  requireAndLoad('./src/sockethub', 'remoteStorage.sockethub');
 
   var suites = [];
 

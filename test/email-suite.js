@@ -1,8 +1,8 @@
 require('./test/dependencies');
 
-require('./src/utils/credentialsstore');
-require('./src/utils/prefixtree');
-require('./src/email');
+requireAndLoad('./src/utils/credentialsstore', 'CredentialsStore');
+requireAndLoad('./src/utils/prefixtree', 'PrefixTree');
+requireAndLoad('./src/email', 'remoteStorage.email');
 define([], function() {
 
   var suites = [];
