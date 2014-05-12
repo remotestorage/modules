@@ -17,7 +17,7 @@ PrefixTree = function(baseClient) {
   }
   function pathToKey(path) {
     var parts = path.split('/');
-    if(parts[parts.length-1][0] != '_') {
+    if (parts[parts.length-1][0] != '_') {
       throw new Error('cannot parse path '+path+' to key');
     }
     parts[parts.length-1] = parts[parts.length-1].substring(1);
@@ -29,13 +29,13 @@ PrefixTree = function(baseClient) {
   function getKeysAndDirs(path) {
     return baseClient.getListing(path, false).then(function(listing) {
       var itemsMap={}, i, keys = [], dirs = [];
-      if(typeof(listing)=='object') {
+      if (typeof(listing)=='object') {
         itemsMap = listing
       } else {
         itemsMap = {};
       }
-      for(i in itemsMap) {
-        if(i.substr(-1)=='/') {
+      for (i in itemsMap) {
+        if (i.substr(-1)=='/') {
           dirs.push(path+i);
         } else {
           keys.push(pathToKey(path+i));
@@ -52,17 +52,17 @@ PrefixTree = function(baseClient) {
         itemsMap = {};
       }
       var numDocuments;
-      if(itemsMap[key[depth]+'/']) {//go deeper
+      if (itemsMap[key[depth]+'/']) {//go deeper
         return tryDepth(key, depth+1, checkMaxLeaves);
       }
-      if(checkMaxLeaves) {
+      if (checkMaxLeaves) {
         numDocuments = 0;
-        for(i in itemsMap) {
-          if(i.substr(-1) != '/') {
+        for (i in itemsMap) {
+          if (i.substr(-1) != '/') {
             numDocuments++;
           }
         }
-        if(numDocuments >= maxLeaves) {//start new subtree for this char
+        if (numDocuments >= maxLeaves) {//start new subtree for this char
           return depth+1;
         }
       }//this depth is OK
@@ -79,7 +79,7 @@ PrefixTree = function(baseClient) {
   
   return {
     setMaxLeaves: function(val) {
-      maxLeaves=val;
+      maxLeaves = val;
     },
     getFile: function(key) {
       return tryDepth(key, minDepth, false).then(function(depth) {
@@ -115,6 +115,7 @@ PrefixTree = function(baseClient) {
         storeObject(typeAlias, key, map[key]);
       }
     },
+    changeHandlers: [],
     on: function(event, cb) {
       if(event==='change') {
         baseClient.on('change', function(e) {
@@ -125,10 +126,44 @@ PrefixTree = function(baseClient) {
           }
           cb(e);
         });
+        this.changeHandlers.push(cb);
       } else {
         baseClient.on(event, cb);
       }
     },
-    getKeysAndDirs: getKeysAndDirs
+    fireInitial: function(dirs) {
+      var thisPrefix, promise;
+      if (Array.isArray(dirs)) {
+        if (dirs.length) {
+          thisPrefix = dirs.pop();
+        } else {
+          promise = promising();
+          promising.fulfill();
+          return promise;
+        }
+      } else {
+        dirs = [];
+        thisPrefix = '';
+      }
+
+      return getKeysAndDirs(thisPrefix || '').then(function(keysAndDirs) {
+        for (var i in keysAndDirs.keys) {
+          baseClient.get(keyToPath(keysAndDirs.key[i]), false).then(function(obj) {
+            var j;
+            if (obj) {
+              for (j=0; j<this.changeHandlers.length; j++) {
+                this.changeHandlers[j]({
+                  origin: 'local',
+                  newValue: obj.data,
+                  newContentType: obj.mimeType
+                });
+              }
+            }
+          });
+        }
+        //TODO: try out whether parallelizing requests here would improve performance
+        return this.fireInitial(dirs.concat(keysAndDirs.dirs));
+      });
+    }
   };
 };

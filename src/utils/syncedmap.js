@@ -1,6 +1,6 @@
 function SyncedMap(name, baseClient) {
   var data = {}, prefixTree = PrefixTree(baseClient.scope(name+'/'));
-  //prefixTree.cache('');
+  prefixTree.cache('', 'ALL');
   prefixTree.on('change', function(e) {
     if(e.origin != 'window') {
       data[e.key] = e.newValue;
@@ -26,9 +26,7 @@ function SyncedMap(name, baseClient) {
       return Object.getOwnPropertyNames(data);
     },
     load: function(key) {
-      return prefixTree.getObject(key).then(function(res) {
-        data[key] = res.data;
-      });
+      return prefixTree.fireInitial();
     }
   };
 }
