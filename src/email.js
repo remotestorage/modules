@@ -18,7 +18,7 @@ RemoteStorage.defineModule('email', function(privClient, pubClient) {
       object: {
         type: 'object',
         properties: {
-          objectType: 'credentials',
+          objectType: {type: 'string', 'enum': ['credentials'] },
           imap: {
             type: 'object',
             properties: {
