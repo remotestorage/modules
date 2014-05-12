@@ -4,6 +4,43 @@ RemoteStorage.defineModule('email', function(privClient, pubClient) {
   }
   var credentialsStore = CredentialsStore('email', privClient);
 
+  privClient.declareType('config', {
+    type: 'object',
+    properties: {
+      actor: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          address: { type: 'string' },
+        },
+        required: ['name', 'address']
+      },
+      imap: {
+        type: 'object',
+        properties: {
+          host: { type: 'string' },
+          port: { type: 'number' },
+          secure: { type: 'boolean' },
+          username: { type: 'string' },
+          password: { type: 'string' }
+        },
+        required: ['host', 'port', 'secure', 'username', 'password']
+      },
+      smtp: {
+        type: 'object',
+        properties: {
+          host: { type: 'string' },
+          port: { type: 'number' },
+          secure: { type: 'boolean' },
+          username: { type: 'string' },
+          password: { type: 'string' }
+        },
+        required: ['host', 'port', 'secure', 'username', 'password']
+      }
+    },
+    required: ['actor']
+  });
+
   function mergeObjects(existing, adding) {
     var i;
     if((typeof(adding) != 'object') || (typeof(existing) != 'object')) {
