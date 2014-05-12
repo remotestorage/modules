@@ -12,8 +12,9 @@ define(['require', '../scripts/lib/sjcl'], function(require, sjcl) {
         host: 'example.com',
         port: 829,
         path: '/sockethub',
+        ssl: true,
         tls: true,
-        secret: '123'
+        register: { secret: '123' }
       };
       env.configBad = {
         host: false,

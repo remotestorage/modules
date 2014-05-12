@@ -8,10 +8,17 @@ RemoteStorage.defineModule('sockethub', function(privClient, pubClient) {
       host: { type: 'string' },
       port: { type: 'number' },
       path: { type: 'string' },
+      ssl: { type: 'boolean' },
       tls: { type: 'boolean' },
-      secret: { type: 'string' }
+      register: {
+        type: 'object',
+        properties: {
+          secret: { type: 'string' }
+        },
+        required: ['secret']
+      }
     },
-    required: ['host', 'port', 'path', 'tls', 'secret']
+    required: ['host', 'port', 'path', 'ssl', 'tls', 'register']
   });
   return {
     exports: CredentialsStore('sockethub', privClient)
