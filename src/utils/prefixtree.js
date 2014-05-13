@@ -118,13 +118,13 @@ PrefixTree = function(baseClient) {
     changeHandlers: [],
     on: function(event, cb) {
       if(event==='change') {
-        baseClient.on('change', function(e) {
+        baseClient.on('change', function(evt) {
           try {
-            e.key = pathToKey(e.relativePath);
-          } catch (e) {
+            evt.key = pathToKey(evt.relativePath);
+          } catch (err) {
             return;
           }
-          cb(e);
+          cb(evt);
         });
         this.changeHandlers.push(cb);
       } else {
