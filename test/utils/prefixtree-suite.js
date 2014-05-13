@@ -505,10 +505,11 @@ define(['require'], function(require) {
       {
         desc: "fireInitial fires all the right events",
         run: function (env, test) {
-          var eventsSeen = { 'foo': false, 'foxy': false, 'bar': false, 'bazooka': false },
+          var eventsSeen = { 'foo': false, 'foxy': false, 'bar': false, 'bazooka': false, 'bbb': false },
               getListingPromise1 = promising(), getListingPromise2 = promising(), getListingPromise3 = promising(),
-              getListingPromise4 = promising(), getListingPromise5 = promising(),
-              getFilePromise1 = promising(), getFilePromise2 = promising(), getFilePromise3 = promising(), getFilePromise4 = promising();
+              getListingPromise4 = promising(), getListingPromise5 = promising(), getListingPromise6 = promising(),
+              getFilePromise1 = promising(), getFilePromise2 = promising(), getFilePromise3 = promising(),
+              getFilePromise4 = promising(), getFilePromise5 = promising();
           env.called = [];
           env.responses = {};
           env.handlers['change'] = [];
@@ -517,10 +518,12 @@ define(['require'], function(require) {
           env.responses[ ['getListing', 'f/o/', false] ] = getListingPromise3;
           env.responses[ ['getListing', 'b/', false] ] = getListingPromise4;
           env.responses[ ['getListing', 'b/a/', false] ] = getListingPromise5;
+          env.responses[ ['getListing', 'b/b/', false] ] = getListingPromise6;
           env.responses[ ['getFile', 'f/o/_o', false] ] = getFilePromise1;
           env.responses[ ['getFile', 'f/o/_xy', false] ] = getFilePromise2;
           env.responses[ ['getFile', 'b/_ar', false] ] = getFilePromise3;
           env.responses[ ['getFile', 'b/a/_zooka', false] ] = getFilePromise4;
+          env.responses[ ['getFile', 'b/b/_b', false] ] = getFilePromise5;
           
           env.prefixTree.on('change', function(evt) {
             test.assertAnd(eventsSeen[evt.key], false);
@@ -536,11 +539,12 @@ define(['require'], function(require) {
                 return;
               }
             }
-            console.log(env.called);
             test.assertAnd(env.called, [
               [ 'getListing', '', false ],
               [ 'getListing', 'b/', false ],
               [ 'getFile', 'b/_ar', false ],
+              [ 'getListing', 'b/b/', false ],
+              [ 'getFile', 'b/b/_b', false ],
               [ 'getListing', 'b/a/', false ],
               [ 'getFile', 'b/a/_zooka', false ],
               [ 'getListing', 'f/', false ],
@@ -565,10 +569,14 @@ define(['require'], function(require) {
           });
           getListingPromise4.fulfill({
            'a/': true,
+           'b/': true,
            '_ar': true
           });
           getListingPromise5.fulfill({
            '_zooka': true
+          });
+          getListingPromise6.fulfill({
+           '_b': true
           });
           getFilePromise1.fulfill({
             data: 'baseClient foo',
@@ -585,6 +593,10 @@ define(['require'], function(require) {
           getFilePromise4.fulfill({
             data: 'baseClient bazooka',
             mimeType: 'baseClient content type bazooka'
+          });
+          getFilePromise5.fulfill({
+            data: 'baseClient bbb',
+            mimeType: 'baseClient content type bbb'
           });
         }
       },
