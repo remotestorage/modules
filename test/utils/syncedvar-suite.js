@@ -11,14 +11,26 @@ define(['require'], function(require) {
     desc: 'SyncedVar suite',
     setup: function (env, test) {
       env.baseClient = {
-        getFile: function(path, maxAge) { return env.responses[['getFile', path, maxAge]]; },
-        storeFile: function(path, maxAge) { return env.responses[['storeFile', path, maxAge]]; },
         on: function(eventName, handler) { env.handlers[eventName].push(handler);}
       };
       env.responses = {};
       env.handlers = {
         change: []
       };
+
+      function mock(obj, functionName) {
+        obj[functionName] = function() {
+          var i, input = [functionName].concat(Array.prototype.slice.call(arguments));
+          if (!env.responses[input]) {
+            console.log('MISSING (or falsy) RESPONSE', input, Object.keys(env.responses));
+          }
+          env.called.push(input);
+          return env.responses[input];
+        };
+      }
+      mock(env.baseClient, 'getFile');
+      mock(env.baseClient, 'storeFile');
+      
       env.syncedVar = new SyncedVar('foo', env.baseClient);
       test.done();
     },
@@ -28,7 +40,8 @@ define(['require'], function(require) {
         desc: "load, set, get",
         run: function (env, test) {
           var res, storeFilePromise = promising(), getFilePromise = promising();
-          env.responses[ ['storeFile', 'foo', 'bar'] ] = storeFilePromise;
+          env.called = [];
+          env.responses[ ['storeFile', 'application/octet-stream', 'foo', 'bar'] ] = storeFilePromise;
           env.responses[ ['getFile', 'foo', false] ] = getFilePromise;
           env.syncedVar.load();
           getFilePromise.fulfill({
@@ -44,6 +57,10 @@ define(['require'], function(require) {
           storeFilePromise.fulfill();
           res = env.syncedVar.get();
           test.assertAnd(res, 'bar');
+          test.assertAnd(env.called, [
+            [ 'getFile', 'foo', false ],//called during load, and then not again
+            [ 'storeFile', 'application/octet-stream', 'foo', 'bar' ]
+          ]);
           test.done();
         }
       },
@@ -52,6 +69,7 @@ define(['require'], function(require) {
         desc: "incoming updates",
         run: function (env, test) {
           var res, storeFilePromise = promising(), getFilePromise = promising();
+          env.called = [];
           env.responses[ ['storeFile', 'foo', 'bar'] ] = storeFilePromise;
           env.responses[ ['getFile', 'foo', false] ] = getFilePromise;
           env.syncedVar.load();
@@ -67,6 +85,9 @@ define(['require'], function(require) {
           });
           res = env.syncedVar.get();
           test.assertAnd(res, 'incoming value');
+          test.assertAnd(env.called, [
+            [ 'getFile', 'foo', false ]//called during load, and then not again
+          ]);
           test.done();
         }
       }
