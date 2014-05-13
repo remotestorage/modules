@@ -52,7 +52,8 @@ PrefixTree = function(baseClient) {
         itemsMap = {};
       }
       var numDocuments;
-      if (itemsMap[keyToItemName(key, depth)]) {//found it
+      if (itemsMap[keyToItemName(key, depth)]//found it 
+          || depth === key.length) {//or can't go deeper
         return depth;
       }
       if (itemsMap[key[depth]+'/']) {//go deeper

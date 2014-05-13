@@ -459,6 +459,51 @@ define(['require'], function(require) {
         }
       },
 
+
+      {
+        desc: "storeFile never goes deeper than the length of the key",
+        run: function (env, test) {
+          var getListingPromise1 = promising(), getListingPromise2 = promising(), getListingPromise3 = promising(), storeFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise1;
+          env.responses[ ['getListing', 'f/o/', false] ] = getListingPromise2;
+          env.responses[ ['getListing', 'f/o/o/', false] ] = getListingPromise3;
+          env.responses[ ['storeFile', 'text/plain;charset=utf-8', 'f/o/o/_', 'bar'] ] = storeFilePromise;
+          
+          env.prefixTree.setMaxLeaves(2);
+          env.prefixTree.storeFile('text/plain;charset=utf-8', 'foo', 'bar').then(function() {
+            test.assertAnd(env.called, [
+              ['getListing', 'f/', false],
+              ['getListing', 'f/o/', false],
+              ['getListing', 'f/o/o/', false],
+              ['storeFile', 'text/plain;charset=utf-8', 'f/o/o/_', 'bar']
+            ]);
+            test.done();
+          });
+          
+          getListingPromise1.fulfill({
+           'o/': true
+          });
+          
+          getListingPromise2.fulfill({
+           'o/': true
+          });
+          
+          getListingPromise3.fulfill({
+           '_it': true,
+           '_should': true,
+           '_ignore': true,
+           '_maxLeaves': true,
+           '_in': true,
+           '_this': true,
+           '_case': true,
+           'undefined/': true
+          });
+          storeFilePromise.fulfill();
+        }
+      },
+
       //TODO: add test for fireInitial
       {
         desc: "incoming updates",
