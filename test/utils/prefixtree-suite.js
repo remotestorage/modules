@@ -283,7 +283,182 @@ define(['require'], function(require) {
         }
       },
 
-      //TODO: "setMaxLeaves determines when a new subfolder is started",
+      {
+        desc: "storeFile non-existing goes one deeper if maxLeaves is reached",
+        run: function (env, test) {
+          var getListingPromise1 = promising(), getListingPromise2 = promising(), storeFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise1;
+          env.responses[ ['getListing', 'f/o/', false] ] = getListingPromise2;
+          env.responses[ ['storeFile', 'text/plain;charset=utf-8', 'f/o/_o', 'bar'] ] = storeFilePromise;
+          
+          env.prefixTree.setMaxLeaves(5);
+          env.prefixTree.storeFile('text/plain;charset=utf-8', 'foo', 'bar').then(function() {
+            test.assertAnd(env.called, [ ['getListing', 'f/', false], ['getListing', 'f/o/', false], ['storeFile', 'text/plain;charset=utf-8', 'f/o/_o', 'bar'] ]);
+            test.done();
+          });
+          
+          getListingPromise1.fulfill({
+           '_a': true,
+           '_l': true,
+           'o/': true,
+           '_t': true,
+           '_al': true,
+           '_r': true,
+           '_e': true,
+           '_ad': true,
+           'y/': true
+          });
+          
+          getListingPromise2.fulfill({
+           '_not': true,
+           '_as': true,
+           '_many': true,
+           '_documents': true,
+           'but/': true,
+           'pos/': true,
+           'si/': true,
+           'bly/': true,
+           'a/': true,
+           'lot/': true,
+           'of/': true,
+           'folders/': true,
+          });
+          storeFilePromise.fulfill();
+        }
+      },
+
+      {
+        desc: "setMaxLeaves does not affect getFile",
+        run: function (env, test) {
+          var getFilePromise = promising(), getListingPromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise;
+          env.responses[ ['getFile', 'f/_oo', false] ] = getFilePromise;
+         
+          env.prefixTree.setMaxLeaves(2); 
+          env.prefixTree.getFile('foo').then(function(res) {
+            test.assertAnd(res.data, 'baseClient value');
+            test.assertAnd(env.called, [ [ 'getListing', 'f/', false ], [ 'getFile', 'f/_oo', false ] ]);
+            test.done();
+          });
+          getListingPromise.fulfill({
+           'a': true,
+           'l': true,
+           'o': true,
+           't': true,
+           'al': true,
+           'r': true,
+           'e': true,
+           'ad': true,
+           'y': true
+          });
+          getFilePromise.fulfill({
+            data: 'baseClient value',
+            mimeType: 'baseClient content type'
+          });
+        }
+      },
+
+      {
+        desc: "setMaxLeaves does not affect remove",
+        run: function (env, test) {
+          var getListingPromise = promising(), removePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise;
+          env.responses[ ['remove', 'f/_oo'] ] = removePromise;
+          env.prefixTree.remove('foo').then(function() {
+            test.assertAnd(env.called, [ ['getListing', 'f/', false], ['remove', 'f/_oo'] ]);
+            test.done();
+          });
+          
+          getListingPromise.fulfill({
+           'a': true,
+           'l': true,
+           'o': true,
+           't': true,
+           'al': true,
+           'r': true,
+           'e': true,
+           'ad': true,
+           'y': true
+          });
+          removePromise.fulfill();
+        }
+      },
+
+      //TODO: "it will always store an object to the same place, even if multiple options exist",
+      {
+        desc: "storeFile ignores maxLeaves if the document already exists, even if the subfolder also exists",
+        run: function (env, test) {
+          var getListingPromise = promising(), storeFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise;
+          env.responses[ ['storeFile', 'text/plain;charset=utf-8', 'f/_oo', 'bar'] ] = storeFilePromise;
+          
+          env.prefixTree.setMaxLeaves(5);
+          env.prefixTree.storeFile('text/plain;charset=utf-8', 'foo', 'bar').then(function() {
+            test.assertAnd(env.called, [ ['getListing', 'f/', false], ['storeFile', 'text/plain;charset=utf-8', 'f/_oo', 'bar'] ]);
+            test.done();
+          });
+          
+          getListingPromise.fulfill({
+           '_a': true,
+           '_l': true,
+           'o/': true,
+           '_t': true,
+           '_al': true,
+           '_r': true,
+           '_e': true,
+           '_ad': true,
+           '_y': true,
+           '_and': true,
+           '_oo': true
+          });
+          storeFilePromise.fulfill();
+        }
+      },
+
+      {
+        desc: "storeFile non-existing goes as deep as it can",
+        run: function (env, test) {
+          var getListingPromise1 = promising(), getListingPromise2 = promising(), getListingPromise3 = promising(), storeFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise1;
+          env.responses[ ['getListing', 'f/o/', false] ] = getListingPromise2;
+          env.responses[ ['getListing', 'f/o/o/', false] ] = getListingPromise3;
+          env.responses[ ['storeFile', 'text/plain;charset=utf-8', 'f/o/o/_', 'bar'] ] = storeFilePromise;
+          
+          env.prefixTree.storeFile('text/plain;charset=utf-8', 'foo', 'bar').then(function() {
+            test.assertAnd(env.called, [
+              ['getListing', 'f/', false],
+              ['getListing', 'f/o/', false],
+              ['getListing', 'f/o/o/', false],
+              ['storeFile', 'text/plain;charset=utf-8', 'f/o/o/_', 'bar']
+            ]);
+            test.done();
+          });
+          
+          getListingPromise1.fulfill({
+           'o/': true
+          });
+          
+          getListingPromise2.fulfill({
+           'o/': true
+          });
+          
+          getListingPromise3.fulfill({
+           '_it should go here into this folder': true
+          });
+          storeFilePromise.fulfill();
+        }
+      },
+
       //TODO: add test for fireInitial
       {
         desc: "incoming updates",
