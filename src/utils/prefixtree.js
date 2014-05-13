@@ -52,6 +52,9 @@ PrefixTree = function(baseClient) {
         itemsMap = {};
       }
       var numDocuments;
+      if (itemsMap[keyToItemName(key, depth)]) {//found it
+        return depth;
+      }
       if (itemsMap[key[depth]+'/']) {//go deeper
         return tryDepth(key, depth+1, checkMaxLeaves);
       }
@@ -110,11 +113,6 @@ PrefixTree = function(baseClient) {
       });
     },
     storeObject: storeObject,
-    storeObjects: function(typeAlias, map) {
-      for(key in map) {
-        storeObject(typeAlias, key, map[key]);
-      }
-    },
     changeHandlers: [],
     on: function(event, cb) {
       if(event==='change') {
