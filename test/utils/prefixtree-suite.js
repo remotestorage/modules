@@ -505,46 +505,86 @@ define(['require'], function(require) {
       {
         desc: "fireInitial fires all the right events",
         run: function (env, test) {
-          var getListingPromise1 = promising(), getListingPromise2 = promising(), getListingPromise3 = promising(), getFilePromise = promising();
+          var eventsSeen = { 'foo': false, 'foxy': false, 'bar': false, 'bazooka': false },
+              getListingPromise1 = promising(), getListingPromise2 = promising(), getListingPromise3 = promising(),
+              getListingPromise4 = promising(), getListingPromise5 = promising(),
+              getFilePromise1 = promising(), getFilePromise2 = promising(), getFilePromise3 = promising(), getFilePromise4 = promising();
           env.called = [];
           env.responses = {};
           env.handlers['change'] = [];
           env.responses[ ['getListing', '', false] ] = getListingPromise1;
           env.responses[ ['getListing', 'f/', false] ] = getListingPromise2;
           env.responses[ ['getListing', 'f/o/', false] ] = getListingPromise3;
-          env.responses[ ['getFile', 'f/o/_o', false] ] = getFilePromise;
+          env.responses[ ['getListing', 'b/', false] ] = getListingPromise4;
+          env.responses[ ['getListing', 'b/a/', false] ] = getListingPromise5;
+          env.responses[ ['getFile', 'f/o/_o', false] ] = getFilePromise1;
+          env.responses[ ['getFile', 'f/o/_xy', false] ] = getFilePromise2;
+          env.responses[ ['getFile', 'b/_ar', false] ] = getFilePromise3;
+          env.responses[ ['getFile', 'b/a/_zooka', false] ] = getFilePromise4;
           
           env.prefixTree.on('change', function(evt) {
+            test.assertAnd(eventsSeen[evt.key], false);
+            eventsSeen[evt.key] = true;
             test.assertAnd(evt, {
-              key: 'foo',
+              key: evt.key,
               origin: 'local',
-              newValue: 'baseClient value',
-              newContentType: 'baseClient content type'
+              newValue: 'baseClient ' + evt.key,
+              newContentType: 'baseClient content type ' + evt.key
             });
+            for (var i in eventsSeen) {
+              if (eventsSeen[i] === false) {
+                return;
+              }
+            }
+            console.log(env.called);
             test.assertAnd(env.called, [
-              ['getListing', '', false],
-              ['getListing', 'f/', false],
-              ['getListing', 'f/o/', false],
-              ['getFile', 'f/o/_o', false]
+              [ 'getListing', '', false ],
+              [ 'getListing', 'b/', false ],
+              [ 'getFile', 'b/_ar', false ],
+              [ 'getListing', 'b/a/', false ],
+              [ 'getFile', 'b/a/_zooka', false ],
+              [ 'getListing', 'f/', false ],
+              [ 'getListing', 'f/o/', false ],
+              [ 'getFile', 'f/o/_o', false ],
+              [ 'getFile', 'f/o/_xy', false ]
             ]);
             test.done();
           });
           env.prefixTree.fireInitial();
           
           getListingPromise1.fulfill({
-           'f/': true
+           'f/': true,
+           'b/': true
           });
-          
           getListingPromise2.fulfill({
            'o/': true
           });
-          
           getListingPromise3.fulfill({
-           '_o': true
+           '_o': true,
+           '_xy': true
           });
-          getFilePromise.fulfill({
-            data: 'baseClient value',
-            mimeType: 'baseClient content type'
+          getListingPromise4.fulfill({
+           'a/': true,
+           '_ar': true
+          });
+          getListingPromise5.fulfill({
+           '_zooka': true
+          });
+          getFilePromise1.fulfill({
+            data: 'baseClient foo',
+            mimeType: 'baseClient content type foo'
+          });
+          getFilePromise2.fulfill({
+            data: 'baseClient foxy',
+            mimeType: 'baseClient content type foxy'
+          });
+          getFilePromise3.fulfill({
+            data: 'baseClient bar',
+            mimeType: 'baseClient content type bar'
+          });
+          getFilePromise4.fulfill({
+            data: 'baseClient bazooka',
+            mimeType: 'baseClient content type bazooka'
           });
         }
       },
