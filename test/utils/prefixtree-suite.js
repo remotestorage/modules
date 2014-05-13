@@ -390,7 +390,6 @@ define(['require'], function(require) {
         }
       },
 
-      //TODO: "it will always store an object to the same place, even if multiple options exist",
       {
         desc: "storeFile ignores maxLeaves if the document already exists, even if the subfolder also exists",
         run: function (env, test) {
@@ -459,7 +458,6 @@ define(['require'], function(require) {
         }
       },
 
-
       {
         desc: "storeFile never goes deeper than the length of the key",
         run: function (env, test) {
@@ -504,12 +502,59 @@ define(['require'], function(require) {
         }
       },
 
-      //TODO: add test for fireInitial
+      {
+        desc: "fireInitial fires all the right events",
+        run: function (env, test) {
+          var getListingPromise1 = promising(), getListingPromise2 = promising(), getListingPromise3 = promising(), getFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.handlers['change'] = [];
+          env.responses[ ['getListing', '', false] ] = getListingPromise1;
+          env.responses[ ['getListing', 'f/', false] ] = getListingPromise2;
+          env.responses[ ['getListing', 'f/o/', false] ] = getListingPromise3;
+          env.responses[ ['getFile', 'f/o/_o', false] ] = getFilePromise;
+          
+          env.prefixTree.on('change', function(evt) {
+            test.assertAnd(evt, {
+              key: 'foo',
+              origin: 'local',
+              newValue: 'baseClient value',
+              newContentType: 'baseClient content type'
+            });
+            test.assertAnd(env.called, [
+              ['getListing', '', false],
+              ['getListing', 'f/', false],
+              ['getListing', 'f/o/', false],
+              ['getFile', 'f/o/_o', false]
+            ]);
+            test.done();
+          });
+          env.prefixTree.fireInitial();
+          
+          getListingPromise1.fulfill({
+           'f/': true
+          });
+          
+          getListingPromise2.fulfill({
+           'o/': true
+          });
+          
+          getListingPromise3.fulfill({
+           '_o': true
+          });
+          getFilePromise.fulfill({
+            data: 'baseClient value',
+            mimeType: 'baseClient content type'
+          });
+        }
+      },
+
       {
         desc: "incoming updates",
         run: function (env, test) {
           env.called = [];
           env.responses = {};
+          env.handlers['change'] = [];
           env.prefixTree.on('change', function(evt) {
             test.assertAnd(evt, {
               key: 'foo',

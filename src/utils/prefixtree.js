@@ -28,7 +28,7 @@ PrefixTree = function(baseClient) {
   }
   function getKeysAndDirs(path) {
     return baseClient.getListing(path, false).then(function(listing) {
-      var itemsMap={}, i, keys = [], dirs = [];
+      var itemsMap={}, i, keysHere = [], dirs = [];
       if (typeof(listing)=='object') {
         itemsMap = listing
       } else {
@@ -38,10 +38,10 @@ PrefixTree = function(baseClient) {
         if (i.substr(-1)=='/') {
           dirs.push(path+i);
         } else {
-          keys.push(pathToKey(path+i));
+          keysHere.push(i);
         }
       }
-      return { keys: keys, dirs: dirs };
+      return { keysHere: keysHere, dirs: dirs };
     });
   }
   
@@ -130,6 +130,21 @@ PrefixTree = function(baseClient) {
         baseClient.on(event, cb);
       }
     },
+    fireLocal: function(path) {
+      baseClient.getFile(path, false).then(function(obj) {
+        var j;
+        if (obj) {
+          for (j=0; j<this.changeHandlers.length; j++) {
+            this.changeHandlers[j]({
+              key: pathToKey(path),
+              origin: 'local',
+              newValue: obj.data,
+              newContentType: obj.mimeType
+            });
+          }
+        }
+      }.bind(this));
+    },
     fireInitial: function(dirs) {
       var thisPrefix, promise;
       if (Array.isArray(dirs)) {
@@ -137,7 +152,7 @@ PrefixTree = function(baseClient) {
           thisPrefix = dirs.pop();
         } else {
           promise = promising();
-          promising.fulfill();
+          promise.fulfill();
           return promise;
         }
       } else {
@@ -145,24 +160,13 @@ PrefixTree = function(baseClient) {
         thisPrefix = '';
       }
 
-      return getKeysAndDirs(thisPrefix || '').then(function(keysAndDirs) {
-        for (var i in keysAndDirs.keys) {
-          baseClient.get(keyToPath(keysAndDirs.key[i]), false).then(function(obj) {
-            var j;
-            if (obj) {
-              for (j=0; j<this.changeHandlers.length; j++) {
-                this.changeHandlers[j]({
-                  origin: 'local',
-                  newValue: obj.data,
-                  newContentType: obj.mimeType
-                });
-              }
-            }
-          });
+      return getKeysAndDirs(thisPrefix).then(function(keysAndDirs) {
+        for (var i in keysAndDirs.keysHere) {
+          this.fireLocal(thisPrefix+keysAndDirs.keysHere[i]);
         }
         //TODO: try out whether parallelizing requests here would improve performance
         return this.fireInitial(dirs.concat(keysAndDirs.dirs));
-      });
+      }.bind(this));
     }
   };
 };
