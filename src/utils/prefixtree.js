@@ -1,3 +1,31 @@
+/**
+ * Class: PrefixTree
+ *
+ * A PrefixTree is a transparent layer on top of a (scoped) baseClient.
+ * It allows you to write as many documents as you want (tested up to about
+ * 20,000) without using any slashes in their paths. So basically it's then
+ * a key-value store, and it will "feel" like these documents are all in the
+ * base folder. In reality, PrefixTree creates a folder tree based on key
+ * prefixes, and translates keyToPath when going from your module code to the
+ * baseClient, and pathToKey when coming back from the baseClient to your
+ * module (e.g. in change events).
+ * 
+ * To use it, simply construct it from a BaseClient, for instance the privateClient
+ * which you receive when calling defineModule:
+ *
+ *     var prefixTree = new PrefixTree(privClient);
+ *
+ * Then, you can replace all the calls you would usually do to the privClient,
+ * and do them to the prefixTree instead. storeObject/getObject, storeFile/getFile,
+ * remove, and on are all available. getListing and getAll are not, because
+ * they operate on folders, and PrefixTree exposes a non-hierarchical key-value
+ * store.
+ *
+ * To receive one change event for each item currently in the store (e.g. to
+ * populate an in-memory representation), you can call:
+ *
+ *     prefixTree.fireInitial()
+ */
 PrefixTree = function(baseClient) {
   var maxLeaves=5, minDepth=1;
   //for key=='abcdefgh',
@@ -73,18 +101,36 @@ PrefixTree = function(baseClient) {
       return depth;
     });
   }
-  function storeObject(typeAlias, key, obj) {
-    return tryDepth(key, minDepth, true).then(function(depth) {
-      return baseClient.storeObject(typeAlias, keyToPath(key, depth), obj);
-    }, function(err) {
-      console.log('storeObject error', typeAlias, key, obj, err.message);
-    });
-  }
   
   return {
+    /**
+     * Method: setMaxLeaves
+     *
+     * Control the internal maxLeaves variable. To get a small tree with
+     * large folders, choose a high value. If you prefer a large tree with small
+     * folders, choose a low value. This influences the ideal number of documents
+     * (tree leaves) in any folder, it does not limit the number of subfolders.
+     * By default, maxLeaves = 5.
+     *
+     *
+     * Parameters:
+     *   val   - number, the value to set maxLeaves to.
+     *
+     */
     setMaxLeaves: function(val) {
       maxLeaves = val;
     },
+    /**
+     * Method: getFile
+     *
+     * The equivalent of BaseClient.getFile
+     *
+     * Parameters:
+     *   key   - string, the key, corresponding to the path (should not contain slashes).
+     *
+     * Returns:
+     *   A promise like the one from BaseClient.getFile.
+     */
     getFile: function(key) {
       return tryDepth(key, minDepth, false).then(function(depth) {
         return baseClient.getFile(keyToPath(key, depth), false);
@@ -92,6 +138,19 @@ PrefixTree = function(baseClient) {
         console.log('getFile error', key, err.message);
       });
     },
+    /**
+     * Method: storeFile
+     *
+     * The equivalent of BaseClient.storeFile
+     *
+     * Parameters:
+     *   mimeType  - string, like for BaseClient.storeFile
+     *   key       - string, the key, corresponding to the path (should not contain slashes).
+     *   body      - string or ArrayBuffer, like for BaseClient.storeFile
+     *
+     * Returns:
+     *   A promise like the one from BaseClient.storeFile.
+     */
     storeFile: function(mimeType, key, body) {
       return tryDepth(key, minDepth, true).then(function(depth) {
         return baseClient.storeFile(mimeType, keyToPath(key, depth), body);
@@ -99,6 +158,17 @@ PrefixTree = function(baseClient) {
         console.log('storeFile error', mimeType, key, body, err.message);
       });
     },
+    /**
+     * Method: getObject
+     *
+     * The equivalent of BaseClient.getObject
+     *
+     * Parameters:
+     *   key       - string, the key, corresponding to the path (should not contain slashes).
+     *
+     * Returns:
+     *   A promise like the one from BaseClient.getObject.
+     */
     getObject: function(key) {
       return tryDepth(key, minDepth, false).then(function(depth) {
         return baseClient.getObject(keyToPath(key, depth), false);
@@ -106,6 +176,17 @@ PrefixTree = function(baseClient) {
         console.log('getObject error', key, err.message);
       });
     },
+    /**
+     * Method: remove
+     *
+     * The equivalent of BaseClient.remove
+     *
+     * Parameters:
+     *   key       - string, the key, corresponding to the path (should not contain slashes).
+     *
+     * Returns:
+     *   A promise like the one from BaseClient.remove.
+     */
     remove: function(key) {
       return tryDepth(key, minDepth, false).then(function(depth) {
         return baseClient.remove(keyToPath(key, depth));
@@ -113,8 +194,40 @@ PrefixTree = function(baseClient) {
         console.log('remove error', key, err.message);
       });
     },
-    storeObject: storeObject,
+    /**
+     * Method: storeObject
+     *
+     * The equivalent of BaseClient.storeObject
+     *
+     * Parameters:
+     *   typeAlias  - string, like for BaseClient.storObject
+     *   key       - string, the key, corresponding to the path (should not contain slashes).
+     *   body      - object, like for BaseClient.storeObject
+     *
+     * Returns:
+     *   A promise like the one from BaseClient.storeFile.
+     */
+    storeObject: function(typeAlias, key, obj) {
+      return tryDepth(key, minDepth, true).then(function(depth) {
+        return baseClient.storeObject(typeAlias, keyToPath(key, depth), obj);
+      }, function(err) {
+        console.log('storeObject error', typeAlias, key, obj, err.message);
+      });
+    },
     changeHandlers: [],
+    /**
+     * Method: on
+     *
+     * The equivalent of BaseClient.on
+     *
+     * Parameters:
+     *   eventName - string, like for BaseClient.on
+     *   cb        - function, like for BaseClient.on
+     *
+     * Returns:
+     *   A promise like the one from BaseClient.getObject, except that the event
+     *   will contain a 'key' field, corresponding to the path.
+     */
     on: function(event, cb) {
       if(event==='change') {
         baseClient.on('change', function(evt) {
@@ -145,6 +258,15 @@ PrefixTree = function(baseClient) {
         }
       }.bind(this));
     },
+    /**
+     * Method: fireInitial
+     *
+     * Will trigger one change event for each document currently in the tree.
+     * These events will have origin 'local'.
+     *
+     * Parameters:
+     *   dirs - to be left undefined
+     */
     fireInitial: function(dirs) {
       var thisPrefix, promise;
       if (Array.isArray(dirs)) {
