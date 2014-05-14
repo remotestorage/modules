@@ -25,7 +25,7 @@ define(['require'], function(require) {
           }
           env.called.push(input);
           if (env.responses[input] === 'ERROR') {
-            throw new Error('mock error');
+            throw 'mocked error';
           }
           return env.responses[input];
         };
@@ -210,6 +210,106 @@ define(['require'], function(require) {
       },
 
       {
+        desc: "get non-JSON, no encryption",
+        run: function (env, test) {
+          var getFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['getFile', 'foo-config', false] ] = getFilePromise;
+          
+          env.credentialsStore.getConfig().then(function() {
+            test.result(false, 'getConfig should have failed here');
+          }, function(err) {
+            test.assertAnd(err, 'could not parse foo-config as unencrypted JSON');
+            test.assertAnd(env.called, [ 
+             [ 'getFile', 'foo-config', false ] 
+            ]);
+            test.done();
+          });
+          getFilePromise.fulfill({
+            data: 'garbage',
+            mimeType: 'application/json'
+          });
+        }
+      },
+
+      {
+        desc: "non-object config",
+        run: function (env, test) {
+          env.called = [];
+          env.responses = {};
+          try {
+            env.credentialsStore.setConfig('foo', 'bar');
+            test.result(false, 'should not have reached here');
+          } catch (e) {
+            test.assertAnd(e, 'config should be an object');
+          }
+          test.assertAnd(env.called, []);
+          test.done();
+        }
+      },
+
+      {
+        desc: "sjcl undefined",
+        run: function (env, test) {
+          env.called = [];
+          env.responses = {};
+          var tmp = global.sjcl;
+          delete global.sjcl;
+          try {
+            env.credentialsStore.setConfig('foo', {some: 'conf'});
+            test.result(false, 'should not have reached here');
+          } catch (e) {
+            test.assertAnd(e, 'please include sjcl.js (the Stanford JS Crypto Library) in your app');
+          }
+          test.assertAnd(env.called, []);
+          global.sjcl = tmp;
+          test.done();
+        }
+      },
+
+      {
+        desc: "schema not declared",
+        run: function (env, test) {
+          var storeFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }] ] = 'ERROR';
+          
+          try { 
+            env.credentialsStore.setConfig(undefined, {some: 'conf'});
+            test.result(false, 'should not have reached here');
+          } catch (err) {
+            test.assertAnd(err, 'mocked error');
+          }
+          test.assertAnd(env.called, [ 
+           [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ]
+          ]);
+          test.done();
+        }
+      },
+
+      {
+        desc: "schema violation",
+        run: function (env, test) {
+          var storeFilePromise = promising();
+          env.called = [];
+          env.responses = {};
+          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }] ] = { valid: false, error: 'yep' };
+          
+          env.credentialsStore.setConfig(undefined, {some: 'conf'}).then(function() {
+            test.result(false, 'setConfig should have failed here');
+          }, function(err) {
+            test.assertAnd(err, 'Please follow the config schema - {"valid":false,"error":"yep"}');
+            test.assertAnd(env.called, [ 
+             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ]
+            ]);
+            test.done();
+          });
+        }
+      },
+
+      {
         desc: "incoming updates",
         run: function (env, test) {
           env.called = [];
@@ -227,13 +327,6 @@ define(['require'], function(require) {
           });
         }
       }
-  //TODO: test with encryption
-  //TODO: test get garbage without encryption
-  //TODO: test get garbage with encryption
-  //TODO: test get encrypted without encryption
-  //TODO: test get clear with encryption
-  //TODO: test get wrong pass with encryption
-  //TODO: test that it throws exactly the errors mentioned in the docs
     ]
 
   });
