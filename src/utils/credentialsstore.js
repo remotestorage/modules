@@ -1,5 +1,5 @@
 CredentialsStore = function(moduleName, privClient) {
-  var algorithmPrefix =  'AES-CCM-128:';
+  var algorithmPrefix =  'AES-CCM-128:', changeHandlers = [];
   
   if (typeof(moduleName) !== 'string') {
     throw new Error('moduleName should be a string');
@@ -42,6 +42,7 @@ CredentialsStore = function(moduleName, privClient) {
         } else {
           try {
             a.data = JSON.parse(a.data);
+            delete a.data['@context'];
           } catch(e) {
             throw new Error('could not parse '+moduleName+'-config, try specifying a password for decryption');
           }
@@ -52,8 +53,23 @@ CredentialsStore = function(moduleName, privClient) {
       return a.data;
     });
   }
+  function on(eventName, handler) {
+    if (eventName === 'changed') {
+      this.changeHandlers.push(handler);
+    }
+  }
+
+  privClient.on('change', function(evt) {
+    if (evt.path === moduleName+'-config') {
+      for (var i=0; i < this.changeHandlers.length; i++) {
+        this.changeHandlers[i]();
+      }
+    }
+  });
+
   return {
     setConfig: setConfig,
-    getConfig: getConfig
+    getConfig: getConfig,
+    on: on
   };
 };
