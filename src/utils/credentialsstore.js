@@ -16,8 +16,12 @@
  *   privClient - The private BaseClient for your module, you get this from 
  *                    the callback call in remoteStorage.defineModule
  */
-CredentialsStore = function(moduleName, privClient) {
-  var algorithmPrefix =  'AES-CCM-128:', changeHandlers = [];
+function CredentialsStore(moduleName, privClient) {
+  var algorithmPrefix =  'AES-CCM-128:';
+  
+  this.changeHandlers = [];
+  this.moduleName = moduleName;
+  this.privClient = privClient;
   
   if (typeof(moduleName) !== 'string') {
     throw new Error('moduleName should be a string');
@@ -25,107 +29,108 @@ CredentialsStore = function(moduleName, privClient) {
   if (typeof(privClient) !== 'object') {
     throw new Error('privClient should be a (private) base client');
   }
-  /**
-   * Function: setConfig
-   *
-   * Set the config/credentials
-   *
-   * Parameters:
-   *   pwd - String value of the password for client-side encryption, or undefined.
-   *   config - object, the config/credentials to be saved.
-   *
-   * Throws:
-   *   'config should be an object'
-   *   'please include sjcl.js (the Stanford JS Crypto Library) in your app'
-   *   'Schema Not Found' (if you didn't call declareType first)
-   *   'Please follow the config schema - (followed by the schema from your declareType)'
-   */
-  function setConfig(pwd, config) {
-    if (typeof(config) !== 'object') {
-      throw new Error('config should be an object');
-    }
-    if (pwd && !sjcl) {
-      throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
-    }
-    config['@context'] = 'http://remotestorage.io/spec/modules/'+moduleName+'/config';
-    var validationResult = privClient.validate(config);
-    if (!validationResult.valid) {
-      var promise = promising();
-      promise.reject('Please follow the config schema - ' + JSON.stringify(validationResult));
-      return promise;
-    }
-    config = JSON.stringify(config);
-    if(typeof(pwd) === 'string') {
-      config = algorithmPrefix+sjcl.encrypt(pwd, config);
-    }
-    return privClient.storeFile('application/json', moduleName+'-config', config);
-  }
-  /**
-   * Function: getConfig
-   *
-   * Get the config/credentials
-   *
-   * Parameters:
-   *   pwd - String value of the password for client-side encryption, or undefined.
-   *
-   * Throws:
-   *   'please include sjcl.js (the Stanford JS Crypto Library) in your app'
-   *   'could not decrypt (moduleName)-config with that password'
-   *   'could not parse (moduleName)-config, try specifying a password for decryption'
-   */
-  function getConfig(pwd) {
-    if (pwd && !sjcl) {
-      throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
-    }
-    return privClient.getFile(moduleName+'-config', false).then(function(a) {
-      if (typeof(a) === 'object' && typeof(a.data) === 'string') {
-        if (typeof(pwd) === 'string') {
-          try {
-            a.data = JSON.parse(sjcl.decrypt(pwd, a.data.substring(algorithmPrefix.length)));
-          } catch(e) {
-            throw new Error('could not decrypt '+moduleName+'-config with that password');
-          }
-        } else {
-          try {
-            a.data = JSON.parse(a.data);
-            delete a.data['@context'];
-          } catch(e) {
-            throw new Error('could not parse '+moduleName+'-config, try specifying a password for decryption');
-          }
-        }
-      } else {
-        throw new Error(moduleName+'-config not found');
-      }
-      return a.data;
-    });
-  }
-  /**
-   * Function: on
-   *
-   * Register an event handler. Currently only used for change events.
-   *
-   * Parameters:
-   *   eventName - Has to be the String 'change'
-   *   handler   - The function that should be called when the config changes.
-   *                   It will be called without any arguments.
-   */
-  function on(eventName, handler) {
-    if (eventName === 'change') {
-      this.changeHandlers.push(handler);
-    }
-  }
 
-  privClient.on('change', function(evt) {
-    if (evt.path === moduleName+'-config') {
+   privClient.on('change', function(evt) {
+     if (evt.path === moduleName+'-config') {
       for (var i=0; i < this.changeHandlers.length; i++) {
         this.changeHandlers[i]();
       }
     }
-  });
+  }.bind(this));
+}
 
-  return {
-    setConfig: setConfig,
-    getConfig: getConfig,
-    on: on
-  };
-};
+/**
+ * Function: setConfig
+ *
+ * Set the config/credentials
+ *
+ * Parameters:
+ *   pwd - String value of the password for client-side encryption, or undefined.
+ *   config - object, the config/credentials to be saved.
+ *
+ * Throws:
+ *   'config should be an object'
+ *   'please include sjcl.js (the Stanford JS Crypto Library) in your app'
+ *   'Schema Not Found' (if you didn't call declareType first)
+ *   'Please follow the config schema - (followed by the schema from your declareType)'
+ */
+CredentialsStore.prototype.setConfig = function(pwd, config) {
+  if (typeof(config) !== 'object') {
+    throw new Error('config should be an object');
+  }
+  if (pwd && !sjcl) {
+    throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
+  }
+  config['@context'] = 'http://remotestorage.io/spec/modules/'+this.moduleName+'/config';
+  var validationResult = this.privClient.validate(config);
+  if (!validationResult.valid) {
+    var promise = promising();
+    promise.reject('Please follow the config schema - ' + JSON.stringify(validationResult));
+    return promise;
+  }
+  config = JSON.stringify(config);
+  if(typeof(pwd) === 'string') {
+    config = algorithmPrefix+sjcl.encrypt(pwd, config);
+  }
+  return this.privClient.storeFile('application/json', this.moduleName+'-config', config);
+}
+
+/**
+ * Function: getConfig
+ *
+ * Get the config/credentials
+ *
+ * Parameters:
+ *   pwd - String value of the password for client-side encryption, or undefined.
+ *
+ * Throws:
+ *   'please include sjcl.js (the Stanford JS Crypto Library) in your app'
+ *   'could not decrypt (moduleName)-config with that password'
+ *   'could not parse (moduleName)-config, try specifying a password for decryption'
+ */
+CredentialsStore.prototype.getConfig = function(pwd) {
+  if (pwd && !sjcl) {
+    throw new Error('please include sjcl.js (the Stanford JS Crypto Library) in your app');
+  }
+  return this.privClient.getFile(this.moduleName+'-config', false).then(function(a) {
+    if (typeof(a) === 'object' && typeof(a.data) === 'string') {
+      if (typeof(pwd) === 'string') {
+        try {
+          a.data = JSON.parse(sjcl.decrypt(pwd, a.data.substring(algorithmPrefix.length)));
+        } catch(e) {
+          throw new Error('could not decrypt '+this.moduleName+'-config with that password');
+        }
+      } else {
+        try {
+          a.data = JSON.parse(a.data);
+          delete a.data['@context'];
+        } catch(e) {
+          throw new Error('could not parse '+this.moduleName+'-config, try specifying a password for decryption');
+        }
+      }
+    } else {
+      throw new Error(this.moduleName+'-config not found');
+    }
+    return a.data;
+  });
+}
+
+/**
+ * Function: on
+ *
+ * Register an event handler. Currently only used for change events.
+ *
+ * Parameters:
+ *   eventName - Has to be the String 'change'
+ *   handler   - The function that should be called when the config changes.
+ *                   It will be called without any arguments.
+ */
+CredentialsStore.prototype.on = function(eventName, handler) {
+  if (eventName === 'change') {
+    this.changeHandlers.push(handler);
+  }
+}
+
+if (global) {
+  global.CredentialsStore = CredentialsStore;
+}

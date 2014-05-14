@@ -69,37 +69,31 @@ define(['require'], function(require) {
         }
       },
 
-/*      {
+      {
         desc: "incoming updates",
         run: function (env, test) {
           env.called = [];
           env.responses = {};
-          env.handlers['change'] = [];
           env.credentialsStore.on('change', function(evt) {
-            test.assertAnd(evt, {
-              key: 'foo',
-              origin: 'remote',
-              relativePath: '/_oo',
-              newValue: 'incoming value',
-              newContentType: 'incoming content type'
-            });
+            test.assertAnd(evt, undefined);
             test.assertAnd(env.called, []);
             test.done();
           });
           env.handlers['change'][0]({
             origin: 'remote',
-            relativePath: 'f/_oo',
+            path: 'foo-config',
             newValue: 'incoming value',
             newContentType: 'incoming content type'
           });
         }
-      }*/
+      }
   //TODO: test with encryption
   //TODO: test get garbage without encryption
   //TODO: test get garbage with encryption
   //TODO: test get encrypted without encryption
   //TODO: test get clear with encryption
   //TODO: test get wrong pass with encryption
+  //TODO: test that it throws exactly the errors mentioned in the docs
     ]
 
   });
