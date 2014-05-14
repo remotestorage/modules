@@ -31,12 +31,9 @@ define(['require'], function(require) {
       global.PrefixTree = function() {
         this.constructionArgs = arguments;
         env.prefixTree = this;
-        mock(this, 'getFile');
         mock(this, 'storeFile');
-        mock(this, 'getObject');
-        mock(this, 'storeObject');
         mock(this, 'remove');
-        mock(this, 'getListing');
+        mock(this, 'fireInitial');
       }
       global.PrefixTree.prototype.on = function(eventName, handler) { env.handlers[eventName].push(handler);}
       env.syncedMap = new SyncedMap('foo', {
@@ -128,7 +125,9 @@ define(['require'], function(require) {
           env.syncedMap.set('some key', {bla: 17});
           env.syncedMap.set('some key', {bla: 18});
           env.syncedMap.set('some other key', {bla: 19});
-          test.assertAnd(env.syncedMap.getKeys(), ['some other key', 'some key']);
+          test.assertAnd(env.syncedMap.getKeys().length, 2);
+          test.assertAnd(env.syncedMap.getKeys().indexOf('some key') !== -1, true);
+          test.assertAnd(env.syncedMap.getKeys().indexOf('some other key') !== -1, true);
           storeFilePromise1.fulfill({});
           storeFilePromise2.fulfill({});
           storeFilePromise3.fulfill({});
@@ -140,6 +139,29 @@ define(['require'], function(require) {
             ]);
             test.done();
           }, 10);
+        }
+      },
+
+      {
+        desc: "incoming updates (local from PrefixTree.fireInitial, as well as remote)",
+        run: function (env, test) {
+          env.called = [];
+          env.handlers['change'][0]({
+            origin: 'local',
+            key: 'some key',
+            newValue: JSON.stringify({incoming: 'value'}),
+            newContentType: 'application/json'
+          });
+          env.handlers['change'][0]({
+            origin: 'remote',
+            key: 'some other key',
+            newValue: JSON.stringify({incoming: 'value'}),
+            newContentType: 'application/json'
+          });
+          test.assertAnd(env.syncedMap.get('some key'), {incoming: 'value'});
+          test.assertAnd(env.syncedMap.get('some other key'), {incoming: 'value'});
+          test.assertAnd(env.called, []);
+          test.done();
         }
       }
     ]
