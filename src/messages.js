@@ -237,57 +237,6 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     }
   };
 
-  /**
-   * Schema: account.smtp-credentials
-   *
-   * Credentials for a SMTP server.
-   *
-   * Properties:
-   *   host     - Hostname of the SMTP server.
-   *   username - Username to authenticate against SMTP server.
-   *   password - Password to authenticate against SMTP server.
-   *   port     - Port to connect to.
-   *   secure   - Boolean flag to turn on TLS / SSL.
-   */
-  privateClient.declareType('smtp-credentials', {
-    type: 'object',
-    properties: {
-      actor: actorTemplate,
-      credentials: {
-        host: { type: 'string' },
-        username: { type: 'string' },
-        password: { type: 'string' },
-        port: { type: 'number' },
-        secure: { type: 'boolean' },
-      }
-    }
-  });
-
-  /**
-   * Schema: account.imap-credentials
-   *
-   * Credentials for an IMAP server.
-   *
-   * Properties:
-   *   host     - Hostname of the IMAP server.
-   *   username - Username to authenticate against IMAP server.
-   *   password - Password to authenticate against IMAP server.
-   *   port     - Port to connect to.
-   *   secure   - Boolean flag to turn on TLS / SSL.
-   */
-  privateClient.declareType('imap-credentials', {
-    type: 'object',
-    properties: {
-      actor: actorTemplate,
-      credentials: {
-        host: { type: 'string' },
-        username: { type: 'string' },
-        password: { type: 'string' },
-        port: { type: 'number' },
-        secure: { type: 'boolean' }
-      }
-    }
-  });
 
   /**
    * Schema: account.xmpp-credentials
@@ -666,7 +615,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
 
         save: function (accountType, account) {
           var promise = promising();
-          var validTypes = [ 'smtp', 'imap', 'xmpp', 'irc' ];
+          var validTypes = [ 'xmpp' ];
 
           if (! accountType) {
             promise.reject(['Can\'t save account without protocol accountType specified (first param)!']);
