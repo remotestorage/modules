@@ -1,5 +1,5 @@
 (function () {
-  var moduleName = 'sockethub';
+  var moduleName = 'sockethub-credentials';
 
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
