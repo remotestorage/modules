@@ -12,7 +12,7 @@
  *
  * Parameters:
  *   moduleName - String, the name of the module in which you are
- *                    using it.
+ *                    using it, but without the "-credentials" suffix.
  *   privClient - The private BaseClient for your module, you get this from 
  *                    the callback call in remoteStorage.defineModule
  */
