@@ -60,7 +60,7 @@ CredentialsStore.prototype.setConfig = function(pwd, config) {
   if (pwd && typeof sjcl === 'undefined') {
     throw 'please include sjcl.js (the Stanford JS Crypto Library) in your app';
   }
-  config['@context'] = 'http://remotestorage.io/spec/modules/'+this.moduleName+'/config';
+  config['@context'] = 'http://remotestorage.io/spec/modules/'+this.moduleName+'-credentials/config';
   var validationResult = this.privClient.validate(config);
   if (!validationResult.valid) {
     var promise = promising();
