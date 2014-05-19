@@ -44,7 +44,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      *   It also supports all <BaseClient methods at http://remotestoragejs.com/doc/code/files/baseclient-js.html>
      */
     privateList: function(path) {
-      return privateClient.scope(path + "/").extend(listMethods).cache();
+      return privateClient.scope(path + "/").extend(listMethods).cache('', 'ALL');
     },
 
     /**
@@ -62,7 +62,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      *   It also supports all <BaseClient methods at http://remotestoragejs.com/doc/code/files/baseclient-js.html>
      */
     publicList: function(path) {
-      return publicClient.scope(path + "/").extend(listMethods).cache();
+      return publicClient.scope(path + "/").extend(listMethods).cache('', 'ALL');
     }
 
   };
@@ -104,7 +104,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      *   A promise, which will be fulfilled with the updated document.
      */
     set: function(id, doc) {
-      return this.storeObject("text", id, doc).then(function() {
+      return this.storeObject("text", id.toString(), doc).then(function() {
         doc.id = id;
         return doc;
       });
@@ -122,7 +122,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      *   A promise, which will be fulfilled with the document as JSON object.
      */
     get: function(id) {
-      return this.getObject(id).then(function(obj) {
+      return this.getObject(id.toString()).then(function(obj) {
         return obj || {};
       });
     },
