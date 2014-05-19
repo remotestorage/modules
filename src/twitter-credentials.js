@@ -1,4 +1,4 @@
-RemoteStorage.defineModule('twitter', function(privClient, pubClient) {
+RemoteStorage.defineModule('twitter-credentials', function(privClient, pubClient) {
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
