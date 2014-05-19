@@ -17,7 +17,7 @@ RemoteStorage.defineModule('facebook-credentials', function(privClient, pubClien
         type: 'object',
         properties: {
           objectType: {type: 'string', 'enum': ['credentials'] },
-          token: { type: 'string' }
+          access_token: { type: 'string' }
         },
         required: ['objectType', 'token']
       }

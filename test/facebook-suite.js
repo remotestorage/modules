@@ -13,7 +13,7 @@ define(['require'], function(require) {
         },
         object: {
           objectType: 'credentials',
-          token: 'DEADBEEF'
+          access_token: 'DEADBEEF'
         }
       };
       env.configBad = {
