@@ -1,5 +1,5 @@
 require('./test/dependencies');
-require('./src/sockethub');
+require('./src/sockethub-credentials');
 define(['require'], function(require) {
   var suites = [];
 
@@ -43,7 +43,7 @@ define(['require'], function(require) {
       },
 
       {
-        desc: "set config.json",
+        desc: "get config.json",
         run: function (env, test) {
           env.sockethub.getConfig().then(function (d) {
             test.assert(d, env.config);
