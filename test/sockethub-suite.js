@@ -1,4 +1,5 @@
 require('./test/dependencies');
+require('./src/util/credentialsstore');
 require('./src/sockethub-credentials');
 define(['require'], function(require) {
   var suites = [];
@@ -27,7 +28,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.sockethub.writeConfig(env.configBad).then(test.done, function () {
+          env.sockethub.setConfig(undefined, env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -36,16 +37,17 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.sockethub.writeConfig(env.config).then(test.done, function () {
+          env.sockethub.setConfig(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
       },
 
       {
-        desc: "get config.json",
+        desc: "set config.json",
         run: function (env, test) {
           env.sockethub.getConfig().then(function (d) {
+            delete env.config['@context'];
             test.assert(d, env.config);
           }, function () {
             test.result(false);

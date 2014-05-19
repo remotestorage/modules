@@ -1,5 +1,5 @@
 (function () {
-  var moduleName = 'sockethub-credentials';
+  var moduleName = 'sockethub';
 
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
@@ -39,7 +39,7 @@
       }
     });
     return {
-      exports: CredentialsStore('sockethub', privClient)
+      exports: new CredentialsStore('sockethub', privateClient)
     };
   });
 
