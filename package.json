@@ -15,7 +15,8 @@
     "localStorage": "*"
   },
   "devDependencies": {
-    "teste": "*"
+    "teste": "*",
+    "xhr2": "*"
   },
   "scripts": {
     "test": "node_modules/.bin/teste"
