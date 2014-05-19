@@ -197,11 +197,11 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
 
   function filterAlbumListing(listing) {
     var albums = [];
-    listing.forEach(function(item) {
+    for ( var item in listing) {
       if(isDir(item) && item[0] !== '$') {
         albums.push(item.replace(/\/$/, '')); // strip trailing slash
       }
-    });
+    }
     return albums;
   }
 
