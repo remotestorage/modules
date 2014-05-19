@@ -19,7 +19,7 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.sockethub = remoteStorage.sockethub;
+      env.sockethub = remoteStorage.sockethubCredentials;
       test.done();
     },
     tests: [
