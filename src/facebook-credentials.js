@@ -1,4 +1,4 @@
-RemoteStorage.defineModule('facebook-credentials', function(privClient, pubClient) {
+RemoteStorage.defineModule('facebook', function(privClient, pubClient) {
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
@@ -19,12 +19,12 @@ RemoteStorage.defineModule('facebook-credentials', function(privClient, pubClien
           objectType: {type: 'string', 'enum': ['credentials'] },
           access_token: { type: 'string' }
         },
-        required: ['objectType', 'token']
+        required: ['objectType', 'access_token']
       }
     },
     required: ['actor', 'object']
   });
   return {
-    exports: CredentialsStore('facebook', privClient)
+    exports: new CredentialsStore('facebook', privClient)
   };
 });

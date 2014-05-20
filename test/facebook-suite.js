@@ -1,5 +1,6 @@
 require('./test/dependencies');
-require('./src/facebook');
+require('./src/utils/credentialsstore');
+require('./src/facebook-credentials');
 define(['require'], function(require) {
   var suites = [];
 
@@ -21,7 +22,7 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.facebook = remoteStorage.facebookCredentials;
+      env.facebook = remoteStorage.facebook;
       test.done();
     },
     tests: [
@@ -30,7 +31,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.facebook.writeConfig(env.configBad).then(test.done, function () {
+          env.facebook.setConfig(undefined, env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -39,7 +40,7 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.facebook.writeConfig(env.config).then(test.done, function () {
+          env.facebook.setConfig(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
@@ -49,6 +50,7 @@ define(['require'], function(require) {
         desc: "get config.json",
         run: function (env, test) {
           env.facebook.getConfig().then(function (d) {
+            delete env.config['@context'];
             test.assert(d, env.config);
           }, function () {
             test.result(false);
