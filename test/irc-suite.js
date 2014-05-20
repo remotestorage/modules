@@ -1,4 +1,5 @@
 require('./test/dependencies');
+require('./src/utils/credentialsstore');
 require('./src/irc-credentials');
 define(['require'], function(require) {
   var suites = [];
@@ -31,7 +32,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.irc.writeConfig(env.configBad).then(test.done, function () {
+          env.irc.setConfig(undefined, env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -40,7 +41,7 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.irc.writeConfig(env.config).then(test.done, function () {
+          env.irc.setConfig(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
@@ -50,6 +51,7 @@ define(['require'], function(require) {
         desc: "get config.json",
         run: function (env, test) {
           env.irc.getConfig().then(function (d) {
+            delete env.config['@context'];
             test.assert(d, env.config);
           }, function () {
             test.result(false);
