@@ -1,4 +1,5 @@
 require('./test/dependencies');
+require('./src/utils/credentialsstore');
 require('./src/twitter-credentials');
 define(['require'], function(require) {
   var suites = [];
@@ -25,7 +26,7 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.twitter = remoteStorage.twitterCredentials;
+      env.twitter = remoteStorage.twitter;
       test.done();
     },
     tests: [
@@ -34,7 +35,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.twitter.writeConfig(env.configBad).then(test.done, function () {
+          env.twitter.setConfig(undefined, env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -43,7 +44,7 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.twitter.writeConfig(env.config).then(test.done, function () {
+          env.twitter.setConfig(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
@@ -53,6 +54,7 @@ define(['require'], function(require) {
         desc: "get config.json",
         run: function (env, test) {
           env.twitter.getConfig().then(function (d) {
+            delete env.config['@context'];
             test.assert(d, env.config);
           }, function () {
             test.result(false);
