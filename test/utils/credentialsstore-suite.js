@@ -48,9 +48,9 @@ define(['require'], function(require) {
           var storeFilePromise = promising(), getFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }] ] = { valid: true };
+          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }] ] = { valid: true };
           env.responses[ ['storeFile', 'application/json', 'foo-config',
-              JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' })] ] = storeFilePromise;
+              JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' })] ] = storeFilePromise;
           env.responses[ ['getFile', 'foo-config', false] ] = getFilePromise;
           
           env.credentialsStore.setConfig(undefined, {some: 'conf'}).then(function() {
@@ -58,15 +58,15 @@ define(['require'], function(require) {
           }).then(function(res) {
             test.assertAnd(res, {some: 'conf'});
             test.assertAnd(env.called, [ 
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ],
-             [ 'storeFile', 'application/json', 'foo-config', '{"some":"conf","@context":"http://remotestorage.io/spec/modules/foo/config"}' ],
+             [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ],
+             [ 'storeFile', 'application/json', 'foo-config', '{"some":"conf","@context":"http://remotestoragejs.com/spec/modules/foo/config"}' ],
              [ 'getFile', 'foo-config', false ] 
             ]);
             test.done();
           });
           storeFilePromise.fulfill({});
           getFilePromise.fulfill({
-            data: JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }),
+            data: JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }),
             mimeType: 'application/json'
           });
         }
@@ -78,21 +78,21 @@ define(['require'], function(require) {
           var storeFilePromise = promising(), getFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ] ] = { valid: true };
+          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ] ] = { valid: true };
           env.responses[ [ 'encrypt', 'my secret',
-              JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ] ] = 'crypto-crypto';
+              JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ] ] = 'crypto-crypto';
           env.responses[ [ 'storeFile', 'application/json', 'foo-config', 'AES-CCM-128:crypto-crypto' ] ] = storeFilePromise;
           env.responses[ [ 'getFile', 'foo-config', false ] ] = getFilePromise;
           env.responses[ [ 'decrypt', 'my secret', 'crypto-crypto' ] ] =
-              JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' });
+              JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' });
           
           env.credentialsStore.setConfig('my secret', {some: 'conf'}).then(function() {
             return env.credentialsStore.getConfig('my secret');
           }).then(function(res) {
             test.assertAnd(res, {some: 'conf'});
             test.assertAnd(env.called, [
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ],
-             [ 'encrypt', 'my secret', JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ],
+             [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ],
+             [ 'encrypt', 'my secret', JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ],
              [ 'storeFile', 'application/json', 'foo-config', 'AES-CCM-128:crypto-crypto' ],
              [ 'getFile', 'foo-config', false ],
              [ 'decrypt', 'my secret', 'crypto-crypto' ]
@@ -113,9 +113,9 @@ define(['require'], function(require) {
           var storeFilePromise = promising(), getFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ] ] = { valid: true };
+          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ] ] = { valid: true };
           env.responses[ [ 'encrypt', 'my secret',
-              JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ] ] = 'crypto-crypto';
+              JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ] ] = 'crypto-crypto';
           env.responses[ [ 'storeFile', 'application/json', 'foo-config', 'AES-CCM-128:crypto-crypto' ] ] = storeFilePromise;
           env.responses[ [ 'getFile', 'foo-config', false ] ] = getFilePromise;
           env.responses[ [ 'decrypt', 'not my secret', 'crypto-crypto' ] ] = 'ERROR';
@@ -127,8 +127,8 @@ define(['require'], function(require) {
           }, function(err) {
             test.assertAnd(err, 'could not decrypt foo-config with that password');
             test.assertAnd(env.called, [
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ],
-             [ 'encrypt', 'my secret', JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ],
+             [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ],
+             [ 'encrypt', 'my secret', JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ],
              [ 'storeFile', 'application/json', 'foo-config', 'AES-CCM-128:crypto-crypto' ],
              [ 'getFile', 'foo-config', false ],
              [ 'decrypt', 'not my secret', 'crypto-crypto' ]
@@ -149,9 +149,9 @@ define(['require'], function(require) {
           var storeFilePromise = promising(), getFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ] ] = { valid: true };
+          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ] ] = { valid: true };
           env.responses[ [ 'storeFile', 'application/json', 'foo-config',
-             JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ] ] = storeFilePromise;
+             JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ] ] = storeFilePromise;
           env.responses[ [ 'getFile', 'foo-config', false ] ] = getFilePromise;
           
           env.credentialsStore.setConfig(undefined, {some: 'conf'}).then(function() {
@@ -161,15 +161,15 @@ define(['require'], function(require) {
           }, function(err) {
             test.assertAnd(err, 'foo-config is not encrypted, or encrypted with a different algorithm');
             test.assertAnd(env.called, [
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ],
-             [ 'storeFile', 'application/json', 'foo-config', JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ],
+             [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ],
+             [ 'storeFile', 'application/json', 'foo-config', JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ],
              [ 'getFile', 'foo-config', false ]
             ]);
             test.done();
           });
           storeFilePromise.fulfill({});
           getFilePromise.fulfill({
-            data: JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }),
+            data: JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }),
             mimeType: 'application/json'
           });
         }
@@ -181,9 +181,9 @@ define(['require'], function(require) {
           var storeFilePromise = promising(), getFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ] ] = { valid: true };
+          env.responses[ [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ] ] = { valid: true };
           env.responses[ [ 'encrypt', 'my secret',
-              JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ] ] = 'crypto-crypto';
+              JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ] ] = 'crypto-crypto';
           env.responses[ [ 'storeFile', 'application/json', 'foo-config', 'AES-CCM-128:crypto-crypto' ] ] = storeFilePromise;
           env.responses[ [ 'getFile', 'foo-config', false ] ] = getFilePromise;
           
@@ -194,8 +194,8 @@ define(['require'], function(require) {
           }, function(err) {
             test.assertAnd(err, 'foo-config is encrypted, please specify a password for decryption');
             test.assertAnd(env.called, [
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ],
-             [ 'encrypt', 'my secret', JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }) ],
+             [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ],
+             [ 'encrypt', 'my secret', JSON.stringify({some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }) ],
              [ 'storeFile', 'application/json', 'foo-config', 'AES-CCM-128:crypto-crypto' ],
              [ 'getFile', 'foo-config', false ]
             ]);
@@ -274,7 +274,7 @@ define(['require'], function(require) {
           var storeFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }] ] = 'ERROR';
+          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }] ] = 'ERROR';
           
           try { 
             env.credentialsStore.setConfig(undefined, {some: 'conf'});
@@ -283,7 +283,7 @@ define(['require'], function(require) {
             test.assertAnd(err, 'mocked error');
           }
           test.assertAnd(env.called, [ 
-           [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ]
+           [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ]
           ]);
           test.done();
         }
@@ -295,14 +295,14 @@ define(['require'], function(require) {
           var storeFilePromise = promising();
           env.called = [];
           env.responses = {};
-          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' }] ] = { valid: false, error: 'yep' };
+          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' }] ] = { valid: false, error: 'yep' };
           
           env.credentialsStore.setConfig(undefined, {some: 'conf'}).then(function() {
             test.result(false, 'setConfig should have failed here');
           }, function(err) {
             test.assertAnd(err, 'Please follow the config schema - {"valid":false,"error":"yep"}');
             test.assertAnd(env.called, [ 
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo/config' } ]
+             [ 'validate', { some: 'conf', '@context': 'http://remotestoragejs.com/spec/modules/foo/config' } ]
             ]);
             test.done();
           });
