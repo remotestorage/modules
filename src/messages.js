@@ -401,6 +401,9 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var sort = function (a) {
         return a ? a.sort('asc' ? sortAsc : sortDesc) : [];
       };
+      var extractKeys = function (obj) {
+        return Object.keys(obj);
+      }
 
       if (! limit) {
         throw 'Limit not given';
@@ -411,9 +414,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var fetchYear = function (years) {
         var year = years.shift();
         return this.getListing(year).
-          then(function(obj) {
-            return Object.keys(obj);
-          }).then(sort).then(function (months) {
+          then(extractKeys).then(sort).then(function (months) {
             return fetchMonth(year, months);
           }).then(function () {
             if ((result.length < limit) && (years.length > 0)) {
@@ -425,9 +426,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var fetchMonth = function (year, months) {
         var month = months.shift();
         return this.getListing(year + month).
-          then(function(obj) {
-            return Object.keys(obj);
-          }).then(sort).then(function (days) {
+          then(extractKeys).then(sort).then(function (days) {
             return fetchDay(year, month, days);
           }).then(function () {
             if ((result.length < limit) && (months.length > 0)) {
@@ -439,9 +438,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       var fetchDay = function (year, month, days) {
         var day = days.shift();
         return this.getListing(year + month + day).
-          then(function(obj) {
-            return Object.keys(obj);
-          }).then(sort).then(function (messageIds) {
+          then(extractKeys).then(sort).then(function (messageIds) {
             return fetchMessage(year, month, day, messageIds);
           }).then(function () {
             if ((result.length < limit) && (days.length > 0)) {
@@ -466,9 +463,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         });
       }.bind(this);
 
-      return this.getListing().then(function(obj) {
-          return Object.keys(obj);
-        }).then(sort).then(fetchYear).
+      return this.getListing().then(extractKeys).then(sort).then(fetchYear).
         then(function () {
           return result;
         });
