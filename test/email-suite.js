@@ -1,4 +1,5 @@
 require('./test/dependencies');
+require('./src/utils/credentialsstore');
 require('./src/email-credentials');
 define(['require'], function(require) {
   var suites = [];
@@ -34,7 +35,7 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.email = remoteStorage.emailCredentials;
+      env.email = remoteStorage.email;
       test.done();
     },
     tests: [
