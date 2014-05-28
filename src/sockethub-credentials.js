@@ -31,9 +31,16 @@
           "description": "whether or not to use TLS",
           "required": false
         },
-        "secret": {
-          "type": "string",
-          "description": "the secret to identify yourself with the sockethub server",
+        "register": {
+          "description" : "sockethub config file",
+          "type" : "object",
+          "properties": {
+            "secret": {
+              "type": "string",
+              "description": "the secret to identify yourself with the sockethub server",
+              "required": true
+            }
+          },
           "required": true
         }
       }
