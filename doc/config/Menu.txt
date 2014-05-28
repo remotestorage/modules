@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: General, Variables, Functions, Files, Classes, Properties
+Don't Index: General, Functions, Variables, Files, Classes, Properties
 
 
 # --------------------------------------------------------------------------
@@ -59,9 +59,24 @@ File: Overview  (/root/modules/doc/pages/overview.txt)
 
 Group: Modules  {
 
+   File: Contacts  (/root/modules/src/contacts.js)
+   File: Documents  (/root/modules/src/documents.js)
+   File: Email Credentials  (/root/modules/src/email-credentials.js)
+   File: Facebook  (/root/modules/src/facebook-credentials.js)
+   File: Irc  (/root/modules/src/irc-credentials.js)
    File: Messages  (/root/modules/src/messages.js)
    File: PGP  (/root/modules/src/pgp.js)
    File: Pictures  (/root/modules/src/pictures.js)
+   File: Twitter  (/root/modules/src/twitter-credentials.js)
+
+   Group: Utils  {
+
+      File: CredentialsStore  (/root/modules/src/utils/credentialsstore.js)
+      File: PrefixTree  (/root/modules/src/utils/prefixtree.js)
+      File: SyncedMap  (/root/modules/src/utils/syncedmap.js)
+      File: SyncedVar  (/root/modules/src/utils/syncedvar.js)
+      }  # Group: Utils
+
    }  # Group: Modules
 
 Schema Index: List of schemas
