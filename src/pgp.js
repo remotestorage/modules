@@ -11,7 +11,7 @@
  * into your remotestorage without prior evaluation of risks and consequences.
  *
  */
-remoteStorage.defineModule('pgp', function(privateClient) {
+RemoteStorage.defineModule('pgp', function(privateClient) {
 
   var PUBLIC_KEYS_PATH = "keys/pub/", PRIVATE_KEYS_PATH = "keys/priv/";
 
