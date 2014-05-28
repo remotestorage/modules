@@ -1,3 +1,7 @@
+/**
+ * File: Contacts
+ *
+ */
 if(! RemoteStorage) {
   RemoteStorage = remoteStorage;
 }
@@ -30,7 +34,34 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
     }
   }
 
-  // declaring data type 'contact'
+  /**
+   * Schema: contacts/contact
+   *
+   * Contact
+   *
+   * Properties:
+   *   fn - Formatted name (required)
+   *   familyName - family name
+   *   givenName - given name
+   *   additionalName - additional name
+   *   honorificPrefix - array of honorific prefixes
+   *   honorificSuffix - array of honorific suffixes
+   *   nickname - nickname
+   *   url - url
+   *   emails - array of email addresses
+   *   tels - array of telephone numbers
+   *   adr - see http: //json-schema.org/address
+   *   geo - see http: //json-schema.org/geo
+   *   tz - timezone (string)
+   *   bday - birthday (date string)
+   *   org - object with string-typed fields 'organizationName' and 'organizationUnit'
+   *   photo - ? (string)
+   *   logo - ? (string)
+   *   sound - ? (string)
+   *   title - ? (string)
+   *   role - ? (string)
+   *   impp - ? (array of strings)
+   */
   privateClient.declareType('contact', {
     '$schema': 'http://json-schema.org/draft-03/schema#',
     'description': 'A representation of a person, company, organization, or place',

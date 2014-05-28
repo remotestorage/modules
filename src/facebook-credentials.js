@@ -1,7 +1,22 @@
+/**
+ * File: Facebook
+ */
 RemoteStorage.defineModule('facebook', function(privClient, pubClient) {
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
+  /**
+   * Schema: facebook/config
+   *
+   * Credentials configuration for Facebook
+   *
+   * actor - object:
+   *   name - not used (must be a string)
+   *   address - not used (must be a string)
+   * object - object:
+   *   objectType - always 'credentials'
+   *   access_token - your (short- or long-lived) access token for the Facebook API (string)
+   */
   privClient.declareType('config', {
     type: 'object',
     properties: {

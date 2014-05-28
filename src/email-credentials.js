@@ -1,8 +1,36 @@
+/**
+ * File: Email Credentials
+ *
+ */
+
 RemoteStorage.defineModule('email', function(privClient, pubClient) {
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
 
+  /**
+   * Schema: email/config
+   *
+   * Credentials configuration for email
+   *
+   * actor - object:
+   *   name - display name to use when sending email
+   *   address - sender address when sending email
+   * object - object:
+   *   objectType - always 'credentials'
+   *   imap - object:
+   *     host - the imap server to connect to (string)
+   *     port - the imap port to connect to (number)
+   *     tls - whether to use tls (boolean)
+   *     usename - imap username (string)
+   *     password - imap password (string)
+   *   smtp - object:
+   *     host - the smtp server to connect to (string)
+   *     port - the smtp port to connect to (number)
+   *     tls - whether to use tls (boolean)
+   *     usename - smtp username (string)
+   *     password - smtp password (string)
+   */
   privClient.declareType('config', {
     type: 'object',
     properties: {
@@ -47,6 +75,6 @@ RemoteStorage.defineModule('email', function(privClient, pubClient) {
     required: ['actor', 'object']
   });
   return {
-    exports: CredentialsStore('email', privClient)
+    exports: new CredentialsStore('email', privClient)
   };
 });

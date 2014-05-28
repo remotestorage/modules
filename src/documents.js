@@ -12,7 +12,14 @@
 RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
 
   /**
-   * Schema declaration
+   * Schema: documents/text
+   *
+   * A text document
+   *
+   * Properties:
+   *   title - title of the document (string, required)
+   *   content - content of the document (string, required)
+   *   lastEdited - 13-digit timestamp for when the document was last edited
    */
   privateClient.declareType("text", {
     "description": "A text document",

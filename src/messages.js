@@ -50,7 +50,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    */
 
   /**
-   * Schema: message.recipient
+   * Schema: email.recipient
    *
    * Represents a recipient of a message.
    *
@@ -60,7 +60,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    */
 
   /**
-   * Schema: message.draft
+   * Schema: messages/draft
    *
    * Represents a saved message that hasn't been sent yet.
    *
@@ -195,7 +195,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
 
 
   /**
-   * Schema: message
+   * Schema: messages/message
    *
    * Represents a received or sent message.
    *
@@ -212,18 +212,6 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     //required: ['target', 'object.subject', 'object.body', 'object.date']
   });
 
-  /**
-   * Schema: account
-   *
-   * Represents an account's basic metadata.
-   *
-   * Properties:
-   *   name    - The account owner's name.
-   *             This name is used as the sender name for outgoing messages.
-   *   address - The address associated with this account.
-   *             Will be used as the sender address for outgoing messages.
-   *
-   */
   var actorTemplate = {
     properties: {
       actor: {
@@ -239,11 +227,16 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
 
 
   /**
-   * Schema: account.xmpp-credentials
+   * Schema: messages/xmpp-credentials
    *
    * Credentials for an XMPP connection.
    *
    * Properties:
+   *   actor   - object:
+   *     name    - The account owner's name.
+   *               This name is used as the sender name for outgoing messages.
+   *     address - The address associated with this account.
+   *               Will be used as the sender address for outgoing messages.
    *   username - Username to authenticate against XMPP server.
    *   password - Password to authenticate against XMPP server.
    *   server     - Hostname of the XMPP server.
