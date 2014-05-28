@@ -1,5 +1,9 @@
 (function () {
-  var moduleName = 'sockethub';
+  var moduleName = 'sockethubCredentials';
+
+  if(!CredentialsStore) {
+    throw new Error('please include utils/credentialsstore.js');
+  }
 
   RemoteStorage.defineModule(moduleName, function(privateClient, publicClient) {
     privateClient.declareType('config', {
@@ -35,17 +39,7 @@
       }
     });
     return {
-      exports: {
-        c: privateClient,
-
-        getConfig: function () {
-          return privateClient.getObject('config.json');
-        },
-
-        writeConfig: function (data) {
-          return privateClient.storeObject('config', 'config.json', data);
-        }
-      }
+      exports: new CredentialsStore('sockethubCredentials', privateClient)
     };
   });
 
