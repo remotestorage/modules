@@ -1,5 +1,5 @@
 require('./test/dependencies');
-require('./src/util/credentialsstore');
+require('./src/utils/credentialsstore');
 require('./src/sockethub-credentials');
 define(['require'], function(require) {
   var suites = [];
@@ -19,7 +19,7 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.sockethub = remoteStorage.sockethubCredentials;
+      env.sockethub = remoteStorage.sockethub;
       test.done();
     },
     tests: [
@@ -49,7 +49,8 @@ define(['require'], function(require) {
           env.sockethub.getConfig().then(function (d) {
             delete env.config['@context'];
             test.assert(d, env.config);
-          }, function () {
+          }, function (e) {
+            console.log(e);
             test.result(false);
           });
         }
