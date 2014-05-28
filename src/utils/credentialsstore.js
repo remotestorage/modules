@@ -60,7 +60,7 @@ CredentialsStore.prototype.setConfig = function(pwd, config) {
   if (pwd && typeof sjcl === 'undefined') {
     throw 'please include sjcl.js (the Stanford JS Crypto Library) in your app';
   }
-  config['@context'] = 'http://remotestoragejs.com/spec/modules/'+this.moduleName+'/config';
+  config['@context'] = 'http://remotestorage.io/spec/modules/'+this.moduleName+'/config';
   var validationResult = this.privClient.validate(config);
   if (!validationResult.valid) {
     var promise = promising();
@@ -93,7 +93,7 @@ CredentialsStore.prototype.getConfig = function(pwd) {
   if (pwd && !sjcl) {
     throw 'please include sjcl.js (the Stanford JS Crypto Library) in your app';
   }
-  return this.privClient.getFile(this.moduleName+'-config', false).then(function(a) {
+  return this.privClient.getFile(this.moduleName+'-config', undefined).then(function(a) {
     if (typeof(a) === 'object' && typeof(a.data) === 'string') {
       if (typeof(pwd) === 'string') {
         if (a.data.substring(0, this.algorithmPrefix.length) != this.algorithmPrefix) {
@@ -139,6 +139,6 @@ CredentialsStore.prototype.on = function(eventName, handler) {
   }
 }
 
-if (global) {
+if (typeof(global) !== 'undefined') {
   global.CredentialsStore = CredentialsStore;
 }

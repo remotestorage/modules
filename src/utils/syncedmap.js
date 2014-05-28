@@ -92,6 +92,6 @@ function SyncedMap(name, baseClient) {
   };
 }
 
-if (global) {
+if (typeof(global) !== 'undefined') {
   global.SyncedMap = SyncedMap;
 }

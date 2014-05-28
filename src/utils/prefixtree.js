@@ -293,6 +293,6 @@ PrefixTree = function(baseClient) {
   };
 };
 
-if (global) {
+if (typeof(global) !== 'undefined') {
   global.PrefixTree = PrefixTree;
 }

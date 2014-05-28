@@ -66,6 +66,6 @@ function SyncedVar(storagePath, baseClient) {
   };
 }
 
-if (global) {
+if (typeof(global) !== 'undefined') {
   global.SyncedVar = SyncedVar;
 }
