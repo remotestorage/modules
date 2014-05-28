@@ -330,28 +330,6 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     }
   });
 
-  /**
-   * Schema: account.IRC-credentials
-   *
-   * Credentials for an IRC server.
-   *
-   * Properties:
-   *   nick     - Username to authenticate against IRC server.
-   *   password - Password to authenticate against IRC server.
-   *   server   - Hostname of the IRC server.
-   */
-  privateClient.declareType('irc-credentials', {
-    type: 'object',
-    properties: {
-      actor: actorTemplate,
-      credentials: {
-        nick: { type: 'string' },
-        password: { type: 'string' },
-        server: { type: 'string' }
-      }
-    }
-  });
-
   function unpackURI(uri) {
     var record = [];
     record = uri.split(':',2);
@@ -676,7 +654,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
 
         save: function (accountType, account) {
           var promise = promising();
-          var validTypes = [ 'smtp', 'imap', 'xmpp', 'irc' ];
+          var validTypes = [ 'smtp', 'imap', 'xmpp' ];
 
           if (! accountType) {
             promise.reject(['Can\'t save account without protocol accountType specified (first param)!']);
