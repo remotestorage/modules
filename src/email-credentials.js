@@ -1,6 +1,9 @@
 /**
  * File: Email Credentials
  *
+ * Maintainer: Michiel de Jong <michiel@unhosted.org>
+ * Version: -    0.1.0
+ *
  */
 
 RemoteStorage.defineModule('email', function(privClient, pubClient) {

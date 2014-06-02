@@ -1,5 +1,9 @@
 /**
  * File: Facebook
+ *
+ * Maintainer: Michiel de Jong <michiel@unhosted.org>
+ * Version: -    0.1.0
+ *
  */
 RemoteStorage.defineModule('facebook', function(privClient, pubClient) {
   if(!CredentialsStore) {

@@ -1,3 +1,10 @@
+/**
+ * File: Sockethub
+ *
+ * Maintainer: Michiel de Jong <michiel@unhosted.org>
+ * Version: -    0.1.0
+ *
+ */
 (function () {
   var moduleName = 'sockethub';
 

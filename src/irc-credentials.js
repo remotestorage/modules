@@ -1,5 +1,9 @@
 /**
  * File: Irc
+ *
+ * Maintainer: Michiel de Jong <michiel@unhosted.org>
+ * Version: -    0.1.0
+ *
  */
 RemoteStorage.defineModule('irc', function(privClient, pubClient) {
   if(!CredentialsStore) {
