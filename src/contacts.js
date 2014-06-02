@@ -46,7 +46,14 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
    * 
    * Properties:
    *   fn - Formatted name (required)
+   *   hasFamilyName - family name (string)
+   *   hasGivenName - given name (string)
+   *   hasNickName - nickname (string)
    *   hasEmail - email address URI like `mailto:user@host.com` (string)
+   *   hasTelephone - telephone number (string)
+   *   hasURL - personal website URL (string)
+   *   bday - birthday (date string)
+   *   tz - preferred timezone of the person (string)
    */
   privateClient.declareType('contact', 'http://www.w3.org/2006/vcard/ns', {
     'type': 'object',
