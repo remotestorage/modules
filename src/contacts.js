@@ -85,6 +85,7 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
   }
 
   function indexAttribute(type, id, attributeKey, attributeValue) {
+    return;//FIXME: this function incorrectly uses storeObject to store an array.
     var path = indexNodePath(type, attributeKey, attributeValue);
     return privateClient.getObject(path).then(function (list) {
       return privateClient.storeObject('index-node', path, (list || []).concat([id]));
@@ -92,6 +93,7 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
   }
 
   function unindexAttribute(type, id, attributeKey, attributeValue) {
+    return;//FIXME: this function incorrectly uses storeObject to store an array.
     var path = indexNodePath(type, attributeKey, attributeValue);
     return privateClient.getObject(path).then(function (list) {
       var newList = [];
@@ -110,12 +112,14 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
   var INDEX_ATTRIBUTE_KEYS = Object.keys(INDEX_ATTRIBUTES);
 
   function indexContact(contact) {
+    return;//FIXME: this function uses the broken function indexAttribute.
     return util.asyncEach(INDEX_ATTRIBUTE_KEYS, function (key) {
       return indexAttribute('contact', contact.id, key, contact[key]);
     });
   }
 
   function unindexContact(contact) {
+    return;//FIXME: this function uses the broken function unindexAttribute.
     return util.asyncEach(INDEX_ATTRIBUTE_KEYS, function (key) {
       return unindexAttribute('contact', contact.id, key, contact[key]);
     });
