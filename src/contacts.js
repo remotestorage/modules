@@ -42,7 +42,11 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
    *
    * Contact
    *
-   * See  http://www.w3.org/TR/2014/NOTE-vcard-rdf-20140522/
+   * Here, we only specify the most commonly used vcard fields, which is 
+   * already more than what is used in practice by the apps that use this
+   * module. If you want to use a vcard field that is not listed here,
+   * please refer to http://www.w3.org/TR/2014/NOTE-vcard-rdf-20140522/
+   * for the full list.
    * 
    * Properties:
    *   fn - Formatted name (required)
@@ -63,7 +67,15 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
         'type': 'string',
         'required': true
       },
-      'hasEmail': { 'type': 'string' }
+      'hasEmail': { 'type': 'string' },
+      'hasFamilyName': { 'type': 'string' },
+      'hasGivenName': { 'type': 'string' },
+      'hasNickName': { 'type': 'string' },
+      'hasEmail': { 'type': 'string' },
+      'hasTelephone': { 'type': 'string' },
+      'hasURL': { 'type': 'string' },
+      'bday': { 'type': 'string' },
+      'tz': { 'type': 'string' }
     }
   });
 
