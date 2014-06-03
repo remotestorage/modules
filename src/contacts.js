@@ -2,7 +2,7 @@
  * File: Contacts
  *
  * Maintainer: Michiel de Jong <michiel@unhosted.org>
- * Version: -    0.1.0
+ * Version: -    0.2.0
  *
  */
 if(! RemoteStorage) {
@@ -38,36 +38,24 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
   }
 
   /**
-   * Schema: contacts/contact
+   * Schema: http://www.w3.org/2006/vcard/ns
    *
    * Contact
    *
+   * See  http://www.w3.org/TR/2014/NOTE-vcard-rdf-20140522/
+   * 
    * Properties:
    *   fn - Formatted name (required)
-   *   familyName - family name
-   *   givenName - given name
-   *   additionalName - additional name
-   *   honorificPrefix - array of honorific prefixes
-   *   honorificSuffix - array of honorific suffixes
-   *   nickname - nickname
-   *   url - url
-   *   emails - array of email addresses
-   *   tels - array of telephone numbers
-   *   adr - see http: //json-schema.org/address
-   *   geo - see http: //json-schema.org/geo
-   *   tz - timezone (string)
+   *   hasFamilyName - family name (string)
+   *   hasGivenName - given name (string)
+   *   hasNickName - nickname (string)
+   *   hasEmail - email address URI like `mailto:user@host.com` (string)
+   *   hasTelephone - telephone number (string)
+   *   hasURL - personal website URL (string)
    *   bday - birthday (date string)
-   *   org - object with string-typed fields 'organizationName' and 'organizationUnit'
-   *   photo - ? (string)
-   *   logo - ? (string)
-   *   sound - ? (string)
-   *   title - ? (string)
-   *   role - ? (string)
-   *   impp - ? (array of strings)
+   *   tz - preferred timezone of the person (string)
    */
-  privateClient.declareType('contact', {
-    '$schema': 'http://json-schema.org/draft-03/schema#',
-    'description': 'A representation of a person, company, organization, or place',
+  privateClient.declareType('contact', 'http://www.w3.org/2006/vcard/ns', {
     'type': 'object',
     'properties': {
       'fn': {
@@ -75,59 +63,7 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
         'type': 'string',
         'required': true
       },
-      'familyName': { 'type': 'string' },
-      'givenName': { 'type': 'string' },
-      'additionalName': { 'type': 'array', 'items': { 'type': 'string' } },
-      'honorificPrefix': { 'type': 'array', 'items': { 'type': 'string' } },
-      'honorificSuffix': { 'type': 'array', 'items': { 'type': 'string' } },
-      'nickname': { 'type': 'string' },
-      'url': { 'type': 'string', 'format': 'uri' },
-      'emails': {
-        'type': 'array',
-        'items': {
-          'type': 'object',
-          'properties': {
-            'type': { 'type': 'string' },
-            'value': { 'type': 'string', 'format': 'email' }
-          }
-        }
-      },
-      'tels': {
-        'type': 'array',
-        'items': {
-          'type': 'object',
-          'properties': {
-            'type': { 'type': 'string' },
-            'value': { 'type': 'string', 'format': 'phone' }
-          }
-        }
-      },
-      'adr': { '$ref': 'http: //json-schema.org/address' },
-      'geo': { '$ref': 'http: //json-schema.org/geo' },
-      'tz': { 'type': 'string' },
-      'photo': { 'type': 'string' },
-      'logo': { 'type': 'string' },
-      'sound': { 'type': 'string' },
-      'bday': { 'type': 'string', 'format': 'date' },
-      'title': { 'type': 'string' },
-      'role': { 'type': 'string' },
-      'org': {
-        'type': 'object',
-        'properties': {
-          'organizationName': { 'type': 'string' },
-          'organizationUnit': { 'type': 'string' }
-        }
-      },
-      'impp': {
-        'type': 'array',
-        'items': {
-          'type': 'object',
-          'properties': {
-            'type': { 'type': 'string' },
-            'value': { 'type': 'string' }
-          }
-        }
-      }
+      'hasEmail': { 'type': 'string' }
     }
   });
 
@@ -150,22 +86,26 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
 
   function indexAttribute(type, id, attributeKey, attributeValue) {
     var path = indexNodePath(type, attributeKey, attributeValue);
-    return privateClient.getObject(path).then(function (list) {
-      return privateClient.storeObject('index-node', path, (list || []).concat([id]));
+    return privateClient.getObject(path).then(function (obj) {
+      return privateClient.storeObject('index-node', path, {
+        list: (obj.list || []).concat([id])
+      });
     });
   }
 
   function unindexAttribute(type, id, attributeKey, attributeValue) {
     var path = indexNodePath(type, attributeKey, attributeValue);
-    return privateClient.getObject(path).then(function (list) {
+    return privateClient.getObject(path).then(function (obj) {
       var newList = [];
-      if(list) {
-        list.forEach(function (item) {
+      if(obj.list) {
+        obj.list.forEach(function (item) {
           if(item !== id) {
             newList.push(item);
           }
         });
-        return privateClient.storeObject(path);
+        return privateClient.storeObject('index-node', path, {
+          list: newList
+        });
       }
     });
   }
