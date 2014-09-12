@@ -1,52 +1,46 @@
 /**
- * File: Irc
+ * File: IRC Credentials
  *
- * Maintainer: Michiel de Jong <michiel@unhosted.org>
- * Version: -    0.1.0
+ * Maintainer: Nick Jennings <nick@silverbucket.net>
+ * Version: -    0.2.0
  *
  */
-RemoteStorage.defineModule('irc', function(privClient, pubClient) {
+RemoteStorage.defineModule('irc-credentials', function(privClient, pubClient) {
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
   /**
-   * Schema: irc/config
+   * Schema: irc/credentials
    *
-   * Credentials configuration for irc
+   * Credentials for IRC
    *
-   * actor - object:
-   *   name - not used (but must be a string)
-   *   address - irc nick to use (string)
-   * object - object:
-   *   objectType - always 'credentials'
-   *   server - the irc server to connect to (string)
-   *   port - the port to connect to (number)
+   *   nick     - IRC nick (string)
+   *   password - password (string)
+   *   server   - the xmpp server to connect to (string)
    */
-  privClient.declareType('config', {
+  privClient.declareType('credentials', {
     type: 'object',
+    description: 'IRC credentials file',
+    required: ['nick', 'server'],
+    additionalProperties: false,
     properties: {
-      actor: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          address: { type: 'string' },
-        },
-        required: ['name', 'address']
+      uri: {
+        type: 'string',
+        description: 'unique identifier complete with URI prefix. ie. irc:username@irc.freenode.net'
       },
-      object: {
-        type: 'object',
-        properties: {
-          objectType: {type: 'string', 'enum': ['credentials'] },
-          server: { type: 'string' },
-          password: { type: 'string' },
-        },
-        required: ['objectType', 'server']
+      nick: {
+        type: 'string'
+      },
+      password: {
+        type: 'string'
+      },
+      server: {
+        type: 'uri'
       }
     },
-    required: ['actor', 'object']
   });
 
   return {
-    exports: new CredentialsStore('irc', privClient)
+    exports: new CredentialsStore('irc-credntials', privClient)
   };
 });
