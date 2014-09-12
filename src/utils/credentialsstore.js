@@ -29,8 +29,8 @@ function CredentialsStore(moduleName, privClient) {
     throw new Error('privClient should be a (private) base client');
   }
 
-   privClient.on('change', function(evt) {
-     if (evt.path === moduleName + '-config') {
+  privClient.on('change', function(evt) {
+    if (evt.path === moduleName + '-config') {
       for (var i = 0, len = this.changeHandlers.length; i < len; i++) {
         this.changeHandlers[i]();
       }
