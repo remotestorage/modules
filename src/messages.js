@@ -323,7 +323,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
       };
       var extractKeys = function (obj) {
         return Object.keys(obj);
-      }
+      };
 
       if (! limit) {
         throw 'Limit not given';
@@ -570,7 +570,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
                       }
                     }
                   }
-                  numDone++
+                  numDone++;
                   if (keysLength === numDone) {
                     promise.fulfill(listing);
                   }
