@@ -32,8 +32,8 @@ var indexSectionsWithContent = {
    "Schemas": {
       "Symbols": false,
       "Numbers": false,
-      "A": false,
-      "B": false,
+      "A": true,
+      "B": true,
       "C": false,
       "D": true,
       "E": true,
@@ -55,7 +55,7 @@ var indexSectionsWithContent = {
       "U": false,
       "V": false,
       "W": false,
-      "X": false,
+      "X": true,
       "Y": false,
       "Z": false
       }

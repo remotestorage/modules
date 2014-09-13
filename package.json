@@ -15,10 +15,10 @@
     "localStorage": "*"
   },
   "devDependencies": {
-    "teste": "*",
+    "jaribu": "*",
     "xhr2": "*"
   },
   "scripts": {
-    "test": "node_modules/.bin/teste"
+    "test": "node_modules/.bin/jaribu"
   }
 }
