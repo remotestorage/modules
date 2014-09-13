@@ -45,7 +45,7 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
       // email: { href: 'https://email-michiel.5apps.com/' },
       // smarkers: { href: 'https://smarker-nilclass.5apps.com/' },
     };
-  
+
   var changeHandler = function() {
     console.log('Please call remoteStorage.apps.onChange(handler)');
   };
@@ -122,7 +122,7 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
       console.log('calling changeHandler with', apps, evt);
       changeHandler(apps);
     });
-    
+
     /**
      * Schema: apps/app
      *
@@ -146,7 +146,7 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
       defaultApps[i] = fillInBlanks(i, defaultApps[i]);
     }
   }
-  
+
   /**
    * Function: remoteStorage.apps.getInstalledApps
    *
@@ -161,8 +161,8 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
   function getInstalledApps() {
     return apps;
   }
- 
-  
+
+
   /**
    * Function: remoteStorage.apps.getAvailableApps
    *
@@ -181,7 +181,7 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
       if (!apps[i]) {
         availableApps[i] = defaultApps[i];
       }
-    } 
+    }
     return availableApps;
   }
 
