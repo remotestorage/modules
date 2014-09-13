@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: Functions, Classes, Files, General, Properties, Variables
+Don't Index: Variables, Properties, General, Classes, Files, Functions
 
 
 # --------------------------------------------------------------------------
@@ -60,6 +60,7 @@ File: Overview  (/home/michiel/other-dev/modules/doc/pages/overview.txt)
 Group: Modules  {
 
    File: Apps  (/home/michiel/other-dev/modules/src/apps.js)
+   File: Bookmarks  (/home/michiel/other-dev/modules/src/bookmarks.js)
    File: Contacts  (/home/michiel/other-dev/modules/src/contacts.js)
    File: Documents  (/home/michiel/other-dev/modules/src/documents.js)
    File: Email Credentials  (/home/michiel/other-dev/modules/src/email-credentials.js)
