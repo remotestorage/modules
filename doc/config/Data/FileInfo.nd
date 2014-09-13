@@ -1,17 +1,22 @@
 1.51
 JavaScript
-/root/modules/src/email-credentials.js	1401694142	1	Email Credentials
-/root/modules/src/messages.js	1401300766	1	Messages
-/root/modules/src/sockethub-credentials.js	1401694282	1	Sockethub
-/root/modules/doc/pages/overview.txt	1401298233	1	Overview
-/root/modules/src/utils/prefixtree.js	1401299686	1	PrefixTree
-/root/modules/src/utils/syncedmap.js	1401299686	1	SyncedMap
-/root/modules/src/facebook-credentials.js	1401694153	1	Facebook
-/root/modules/src/twitter-credentials.js	1401694260	1	Twitter
-/root/modules/src/contacts.js	1401790597	1	Contacts
-/root/modules/src/irc-credentials.js	1401694171	1	Irc
-/root/modules/src/documents.js	1401300730	1	Documents
-/root/modules/src/pgp.js	1401300730	1	PGP
-/root/modules/src/pictures.js	1401300730	1	Pictures
-/root/modules/src/utils/credentialsstore.js	1401299686	1	CredentialsStore
-/root/modules/src/utils/syncedvar.js	1401299686	1	SyncedVar
+/home/michiel/other-dev/modules/src/feeds.js	1410613675	0	/home/michiel/other-dev/modules/src/feeds.js
+/home/michiel/other-dev/modules/src/pictures.js	1406890945	1	Pictures
+/home/michiel/other-dev/modules/src/pgp.js	1406890945	1	PGP
+/home/michiel/other-dev/modules/src/email-credentials.js	1406890945	1	Email Credentials
+/home/michiel/other-dev/modules/src/contacts.js	1410613675	1	Contacts
+/home/michiel/other-dev/modules/src/irc-credentials.js	1410613675	1	IRC Credentials
+/home/michiel/other-dev/modules/src/sockethub-credentials.js	1410613675	1	Sockethub Credentials
+/home/michiel/other-dev/modules/src/apps.js	1410613675	1	Apps
+/home/michiel/other-dev/modules/src/utils/prefixtree.js	1406890945	1	PrefixTree
+/home/michiel/other-dev/modules/src/articles.js	1410613675	0	/home/michiel/other-dev/modules/src/articles.js
+/home/michiel/other-dev/modules/src/utils/credentialsstore.js	1410613675	1	CredentialsStore
+/home/michiel/other-dev/modules/src/shares.js	1410613675	1	Shares
+/home/michiel/other-dev/modules/src/twitter-credentials.js	1406890945	1	Twitter
+/home/michiel/other-dev/modules/src/messages.js	1410613675	1	Messages
+/home/michiel/other-dev/modules/src/documents.js	1406890945	1	Documents
+/home/michiel/other-dev/modules/src/utils/syncedmap.js	1406890945	1	SyncedMap
+/home/michiel/other-dev/modules/src/facebook-credentials.js	1406890945	1	Facebook
+/home/michiel/other-dev/modules/src/utils/syncedvar.js	1406890945	1	SyncedVar
+/home/michiel/other-dev/modules/src/xmpp-credentials.js	1410613675	1	XMPP Credentials
+/home/michiel/other-dev/modules/doc/pages/overview.txt	1406890945	1	Overview
