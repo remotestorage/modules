@@ -146,6 +146,38 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
       defaultApps[i] = fillInBlanks(i, defaultApps[i]);
     }
   }
+
+  function getAsset(appName, assetBase, assetPath) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', assetBase+assetPath, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function() {
+      pubClient.storeFile(xhr.getResponseHeader('Content-Type'), 'assets/'+appName+'/'+assetPath, xhr.response);
+    };
+    xhr.send();
+  }
+
+  function cloneApp(manifestUrl) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', manifestUrl, true);
+    xhr.onload = function() {
+      var obj = {};
+      try {
+        obj = JSON.parse(xhr.responseText);
+      } catch (e) {
+      }
+      var urlParts = manifestUrl.split('/');
+      urlParts.pop();
+      var assetBase = urlParts.join('/')+'/';
+      console.log('got manifest', manifestUrl, obj);
+      if (Array.isArray(obj.assets)) {
+        for (var i=0; i<obj.assets.length; obj++) {
+          getAsset(obj.name, assetBase, obj.assets[i]);
+        }
+      }
+    };
+    xhr.send();
+  }
   
   /**
    * Function: remoteStorage.apps.getInstalledApps
@@ -194,7 +226,8 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
       installApp: installApp,
       uninstallApp: uninstallApp,
       getInstalledApps: getInstalledApps,
-      getAvailableApps: getAvailableApps
+      getAvailableApps: getAvailableApps,
+      cloneApp: cloneApp
     }
   };
 });
