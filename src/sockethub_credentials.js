@@ -5,7 +5,7 @@
  * Version: -    0.2.0
  *
  */
-RemoteStorage.defineModule('sockethub-credentials', function(privateClient, publicClient) {
+RemoteStorage.defineModule('sockethub_credentials', function(privateClient, publicClient) {
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
@@ -16,6 +16,11 @@ RemoteStorage.defineModule('sockethub-credentials', function(privateClient, publ
     required: ['host', 'port', 'secret'],
     additionalProperties: false,
     properties: {
+      id: {
+        type: 'string',
+        description: 'a uniquely identifiable string (default. [ws|wss]://host:port/path)',
+        format: 'string'
+      },
       host: {
         type: 'string',
         description: 'the hostname to connect to',
@@ -36,11 +41,19 @@ RemoteStorage.defineModule('sockethub-credentials', function(privateClient, publ
       secret: {
         type: 'string',
         description: 'the secret to identify yourself with the sockethub server'
+      },
+      enabled: {
+        type: 'boolean'
       }
     }
   });
 
   return {
-    exports: new CredentialsStore('sockethub-credentials', privateClient)
+    exports: new CredentialsStore('sockethub_credentials', privateClient, function genId(o) {
+        var proto = (o.tls) ? 'wss://' : 'ws://';
+        var port = (o.port) ? ':' + o.port : '';
+        var path = (o.path) ? o.path : '';
+        return proto + o.host + port + path;
+      })
   };
 });

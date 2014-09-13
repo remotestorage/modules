@@ -1,41 +1,25 @@
 require('./test/dependencies');
 require('./src/utils/credentialsstore');
-require('./src/email-credentials');
+require('./src/irc_credentials');
 define(['require'], function(require) {
   var suites = [];
-
   suites.push({
-    desc: 'email',
+    desc: 'irc_credentials',
     setup: function (env, test) {
       env.config = {
-        actor: {
-          address: 'user@host.com',
-          name: 'User Host'
-        },
-        object: {
-          objectType: 'credentials',
-          smtp: {
-            username: 'user@host.com',
-            host: 'mail.host.com',
-            password: 'bla',
-            tls: false,
-            port: 25
-          },
-          imap: {
-            username: 'user@host.com',
-            host: 'mail.host.com',
-            password: 'bloo',
-            tls: false,
-            port: 143
-          }
-        }
+        id: 'myconfig',
+        name: 'Joe Bloggs',
+        nick: 'jbloggs123',
+        objectType: 'credentials',
+        server: 'irc.freenode.net',
+        password: 'sdfs'
       };
       env.configBad = {
         host: false,
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.email = remoteStorage.email;
+      env.irc = remoteStorage['irc_credentials'];
       test.done();
     },
     tests: [
@@ -44,7 +28,7 @@ define(['require'], function(require) {
         desc: "set BAD config.json",
         willFail: true,
         run: function (env, test) {
-          env.email.setConfig(undefined, env.configBad).then(test.done, function () {
+          env.irc.set(env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
@@ -53,7 +37,7 @@ define(['require'], function(require) {
       {
         desc: "set config.json",
         run: function (env, test) {
-          env.email.setConfig(undefined, env.config).then(test.done, function () {
+          env.irc.set(env.config).then(test.done, function () {
             test.result(false);
           });
         }
@@ -62,7 +46,7 @@ define(['require'], function(require) {
       {
         desc: "get config.json",
         run: function (env, test) {
-          env.email.getConfig().then(function (d) {
+          env.irc.get('myconfig').then(function (d) {
             delete env.config['@context'];
             test.assert(d, env.config);
           }, function () {

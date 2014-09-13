@@ -13,6 +13,9 @@ try {
 
 require('./scripts/lib/remotestorage-node');
 global.remoteStorage = new RemoteStorage();
+if (typeof global.RemoteStorage.util !== 'object') {
+  global.RemoteStorage.util = {};
+}
 
 global.jaribuReuse = {};
 global.requireAndLoad = function(fileName, className) {
@@ -21,4 +24,4 @@ global.requireAndLoad = function(fileName, className) {
     global.jaribuReuse[className] = eval(className);
   }
   return global.jaribuReuse[className];
-}
+};

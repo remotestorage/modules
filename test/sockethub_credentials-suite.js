@@ -1,6 +1,6 @@
 require('./test/dependencies');
 require('./src/utils/credentialsstore');
-require('./src/sockethub-credentials');
+require('./src/sockethub_credentials');
 define(['require'], function(require) {
   var suites = [];
 
@@ -19,34 +19,34 @@ define(['require'], function(require) {
         tls: 'uhh'
       };
       remoteStorage.caching.enable('/');
-      env.sockethub = remoteStorage.sockethub;
+      env.sockethub = remoteStorage.sockethub_credentials;
       test.done();
     },
     tests: [
 
       {
-        desc: "set BAD config.json",
+        desc: 'set BAD config.json',
         willFail: true,
         run: function (env, test) {
-          env.sockethub.setConfig(undefined, env.configBad).then(test.done, function () {
+          env.sockethub.set(undefined, env.configBad).then(test.done, function () {
             test.result(false);
           });
         }
       },
 
       {
-        desc: "set config.json",
+        desc: 'set config.json',
         run: function (env, test) {
-          env.sockethub.setConfig(undefined, env.config).then(test.done, function () {
+          env.sockethub.set(undefined, env.config).then(test.done, function () {
             test.result(false);
           });
         }
       },
 
       {
-        desc: "set config.json",
+        desc: 'set config.json',
         run: function (env, test) {
-          env.sockethub.getConfig().then(function (d) {
+          env.sockethub.get().then(function (d) {
             delete env.config['@context'];
             test.assert(d, env.config);
           }, function (e) {

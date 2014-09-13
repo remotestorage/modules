@@ -44,6 +44,9 @@ RemoteStorage.defineModule('xmpp-credentials', function(privClient, pubClient) {
       },
       port: {
         type: 'number'
+      },
+      enabled: {
+        type: 'boolean'
       }
     }
   });
