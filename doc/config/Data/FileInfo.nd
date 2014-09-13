@@ -1,19 +1,19 @@
 1.51
 JavaScript
-/home/michiel/other-dev/modules/src/messages.js	1406890945	1	Messages
+/home/michiel/other-dev/modules/doc/pages/overview.txt	1406890945	1	Overview
 /home/michiel/other-dev/modules/src/utils/credentialsstore.js	1406890945	1	CredentialsStore
-/home/michiel/other-dev/modules/src/bookmarks.js	1410607419	0	/home/michiel/other-dev/modules/src/bookmarks.js
 /home/michiel/other-dev/modules/src/utils/syncedvar.js	1406890945	1	SyncedVar
-/home/michiel/other-dev/modules/src/irc-credentials.js	1406890945	1	Irc
-/home/michiel/other-dev/modules/src/contacts.js	1406890945	1	Contacts
+/home/michiel/other-dev/modules/src/facebook-credentials.js	1406890945	1	Facebook
+/home/michiel/other-dev/modules/src/twitter-credentials.js	1406890945	1	Twitter
 /home/michiel/other-dev/modules/src/pictures.js	1406890945	1	Pictures
-/home/michiel/other-dev/modules/src/utils/syncedmap.js	1406890945	1	SyncedMap
+/home/michiel/other-dev/modules/src/bookmarks.js	1410609388	1	Bookmarks
+/home/michiel/other-dev/modules/src/utils/prefixtree.js	1406890945	1	PrefixTree
 /home/michiel/other-dev/modules/src/sockethub-credentials.js	1406890945	1	Sockethub
 /home/michiel/other-dev/modules/src/apps.js	1406891602	1	Apps
-/home/michiel/other-dev/modules/doc/pages/overview.txt	1406890945	1	Overview
-/home/michiel/other-dev/modules/src/email-credentials.js	1406890945	1	Email Credentials
-/home/michiel/other-dev/modules/src/facebook-credentials.js	1406890945	1	Facebook
-/home/michiel/other-dev/modules/src/utils/prefixtree.js	1406890945	1	PrefixTree
-/home/michiel/other-dev/modules/src/documents.js	1406890945	1	Documents
-/home/michiel/other-dev/modules/src/twitter-credentials.js	1406890945	1	Twitter
 /home/michiel/other-dev/modules/src/pgp.js	1406890945	1	PGP
+/home/michiel/other-dev/modules/src/email-credentials.js	1406890945	1	Email Credentials
+/home/michiel/other-dev/modules/src/documents.js	1406890945	1	Documents
+/home/michiel/other-dev/modules/src/irc-credentials.js	1406890945	1	Irc
+/home/michiel/other-dev/modules/src/messages.js	1406890945	1	Messages
+/home/michiel/other-dev/modules/src/contacts.js	1406890945	1	Contacts
+/home/michiel/other-dev/modules/src/utils/syncedmap.js	1406890945	1	SyncedMap

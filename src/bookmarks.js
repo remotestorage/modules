@@ -1,6 +1,13 @@
-//
-// Bookmarks
-//
+/**
+ * File: Bookmarks
+ *
+ * Sebastian Kippe <basti@kip.pe>
+ *
+ * Version:    - 0.1.0
+ *
+ * This module stores bookmarks. It is used by https://webmarks.5apps.com/
+ *
+ */
 
 RemoteStorage.defineModule('bookmarks', function(privateClient, publicClient) {
 
@@ -28,6 +35,22 @@ RemoteStorage.defineModule('bookmarks', function(privateClient, publicClient) {
     }
   };
 
+
+  /**
+   * Schema: bookmarks/archive-bookmark
+   *
+   * Represents an archived bookmark.
+   *
+   * Properties:
+   *   id          - A string that uniquely identifies this bookmark (required)
+   *   url         - The url of the bookmark (required)
+   *   title       - The user-facing string describing the bookmark (required)
+   *   createdAt   - DateTime string of when this bookmark was created
+   *   description - Like title, but more elaborate
+   *   tags        - Array of strings; use tags to give your bookmarks a loose grouping into categories
+   *   thumbnail   - A base64-encoded screenshot of the bookmarked page
+   */
+
   privateClient.declareType('archive-bookmark', {
     "type": "object",
     "properties": extend({
@@ -47,6 +70,19 @@ RemoteStorage.defineModule('bookmarks', function(privateClient, publicClient) {
     "required": [ "id", "title", "url" ]
   });
 
+  /**
+   * Schema: bookmarks/browser-bookmark
+   *
+   * Represents a bookmark that is not archived.
+   *
+   * Properties:
+   *   id          - A string that uniquely identifies this bookmark
+   *   url         - The url of the bookmark
+   *   title       - The user-facing string describing the bookmark
+   *   createdAt   - DateTime string of when this bookmark was created
+   *   tags        - Array of strings; use tags to give your bookmarks a loose grouping into categories
+   */
+
   privateClient.declareType('browser-bookmark', {
     "type": "object",
     "properties": extend({
@@ -56,6 +92,19 @@ RemoteStorage.defineModule('bookmarks', function(privateClient, publicClient) {
       }
     }, baseProperties)
   });
+
+  /**
+   * Schema: bookmarks/readlater-bookmark
+   *
+   * Represents a bookmark which the user marked for reading later.
+   *
+   * Properties:
+   *   id          - A string that uniquely identifies this bookmark
+   *   url         - The url of the bookmark
+   *   title       - The user-facing string describing the bookmark
+   *   createdAt   - DateTime string of when this bookmark was created
+   *   unread      - Boolean, whether the bookmark is unread (default: true, required)
+   */
 
   privateClient.declareType('readlater-bookmark', {
     "type": "object",
