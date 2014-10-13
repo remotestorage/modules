@@ -6,7 +6,7 @@
  *
  */
 RemoteStorage.defineModule('irc_credentials', function(privClient, pubClient) {
-  if(!CredentialsStore) {
+  if(!RemoteStorage.util.CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
   /**
@@ -44,6 +44,6 @@ RemoteStorage.defineModule('irc_credentials', function(privClient, pubClient) {
   });
 
   return {
-    exports: new CredentialsStore('irc_credntials', privClient)
+    exports: new RemoteStorage.util.CredentialsStore('irc_credentials', privClient)
   };
 });
