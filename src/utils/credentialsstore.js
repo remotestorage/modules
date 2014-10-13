@@ -17,12 +17,12 @@ RemoteStorage.util.CredentialsStore = (function () {
    *   privClient - The private BaseClient for your module, you get this from
    *                    the callback call in remoteStorage.defineModule
    */
-  function CredentialsStore(moduleName, privClient, genId) {
+  function CredentialsStore(moduleName, privClient, genUID) {
     this.algorithmPrefix =  'AES-CCM-128:';
     this.changeHandlers = [];
     this.moduleName = moduleName;
     this.privClient = privClient;
-    this.genId = (typeof genId === 'function') ? genId : privClient.uuid;
+    this.genUID = (typeof genUID === 'function') ? genUID : privClient.uuid;
 
     if (typeof(moduleName) !== 'string') {
       throw new Error('moduleName should be a string');
@@ -79,13 +79,14 @@ RemoteStorage.util.CredentialsStore = (function () {
       credentials = this.algorithmPrefix + sjcl.encrypt(password, credentials);
     }
 
-    if (!credentials.id) {
-      console.log('typeof genId: '+typeof this.genId);
-      console.log('typeof uuid: '+typeof this.privClient.uuid);
-      credentials.id = this.genId(credentials);
+    var uid;
+    if (!credentials.uid) {
+      uid = this.genUID(credentials);
+      credentials.uid = uid;
     }
 
-    return this.privClient.storeFile('application/json', credentials.id, credentials);
+    console.log('calling StoreFile: ', uid, credentials);
+    return this.privClient.storeFile('application/json', uid, credentials);
   };
 
   /**
