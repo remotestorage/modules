@@ -11,8 +11,8 @@
 
 RemoteStorage.defineModule('bookmarks', function(privateClient, publicClient) {
 
-  var extend = remoteStorage.util.extend;
-  var md5; //TODO add some hashing function to remoteStorage.util
+  var extend = RemoteStorage.util.extend;
+  var md5; //TODO add some hashing function to RemoteStorage.util
 
   //
   // Types
