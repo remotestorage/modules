@@ -11,8 +11,10 @@
   },
   "homepage": "http://github.com/remotestorage/modules",
   "dependencies": {
+    "remotestoragejs": "^0.10.3",
     "xmlhttprequest": "*",
-    "localStorage": "*"
+    "localStorage": "*",
+    "bluebird": "2.x"
   },
   "devDependencies": {
     "jaribu": "*",
