@@ -428,10 +428,8 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
    * returns a <Messages> object.
    */
   var account = function (accountURI) {
-    var promise = promising();
     if (messageCache[accountURI]) {
-      promise.fulfill(messageCache[accountURI]);
-      return promise;
+      return Promise.resolve(messageCache[accountURI]);
     }
     accountURI = addressToKey(accountURI);
 
@@ -440,8 +438,7 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
     messages.extend(messageMethods);
     messages.pool = messages.scope('pool/').extend(dateIndexMethods);
     messageCache[accountURI] = messages;
-    promise.fulfill(messages);
-    return promise;
+    return Promise.resolve(messages);
   };
 
   /**
@@ -469,37 +466,6 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         then(function () {
           this.updateCounts( + 1 );
         }.bind(this));
-    },
-
-    storeAll: function (messages) {
-      var n = messages.length, i = 0;
-      var promise = promising();
-      var errors = [];
-      var oneDone = function () {
-        console.log('saved ' + i + '/' + n + ' messages.');
-        i++;
-        if (i === n) {
-          this.updateCounts( + n ).then(function () {
-            promise.fulfill((errors.length > 0) ? errors : null);
-          });
-        }
-      }.bind(this);
-      var oneFailed = function (error) {
-        console.log('failed', error);
-        errors.push(error);
-        oneDone();
-      }.bind(this);
-
-
-      messages.forEach(function (message) {
-        this.pool.storeByDate('message', message.object.date, message.messageId, message).then(
-          oneDone, oneFailed
-        );
-      }.bind(this));
-      if (n === 0) {
-        promise.fulfill();
-      }
-      return promise;
     },
 
     updateCounts: function (step) {
@@ -550,11 +516,10 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
             if (typeof keys === 'object') {
               var keysArray = Object.keys(keys);
               var keysLength = keysArray.length;
-              var promise = promising();
               var numDone = 0;
 
               if (keysLength === 0) {
-                promise.fulfill(listing);
+                return Promise.resolve(listing);
               } else {
                 for (var key in keys) {
                   console.log('key', key);
@@ -572,13 +537,12 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
                   }
                   numDone++;
                   if (keysLength === numDone) {
-                    promise.fulfill(listing);
+                    return Promise.fulfill(listing);
                   }
                 }
               }
-              return promise;
             } else {
-              return [];
+              return Promise.fulfill([]);
             }
           });
         },
@@ -595,28 +559,23 @@ RemoteStorage.defineModule('messages', function (privateClient, publicClient) {
         },
 
         save: function (accountType, account) {
-          var promise = promising();
           var validTypes = [ 'xmpp' ];
 
           if (! accountType) {
-            promise.reject(['Can\'t save account without protocol accountType specified (first param)!']);
-            return promise;
+            return Promise.reject(['Can\'t save account without protocol accountType specified (first param)!']);
           }
 
           if ((typeof account.actor !== 'object') ||
               (! account.actor.address)) {
-            promise.reject(['Can\'t save account without actor.address property!']);
-            return promise;
+            return Promise.reject(['Can\'t save account without actor.address property!']);
           }
 
           if (typeof account.credentials !== 'object') {
-            promise.reject(['Can\'t save account without a credentials property!']);
-            return promise;
+            return Promise.reject(['Can\'t save account without a credentials property!']);
           }
 
           if (validTypes.indexOf(accountType) < 0) {
-            promise.reject(['Invalid type '+accountType]);
-            return promise;
+            return Promise.reject(['Invalid type '+accountType]);
           }
 
           if (typeof account.credentials.port !== 'number') {
