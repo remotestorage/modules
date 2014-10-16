@@ -21,7 +21,7 @@ RemoteStorage.defineModule('contacts', function (privateClient, publicClient) {
    *
    */
 
-  var util = remoteStorage.util;
+  var util = RemoteStorage.util;
 
   var indexPathPrefix = 'index/';
 
