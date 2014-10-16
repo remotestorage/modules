@@ -5,7 +5,7 @@
  *
  * Version:    - 0.0.2
  *
- * This module stores fitness related data, such as body-type measurements,
+ * This module stores fitness related data, such as body measurements,
  * excersize activity, etc.
  *
  */
@@ -25,8 +25,8 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   //     "description": ""
   //   },
 
-  // bodyType measurements
-  var bodyTypeMeasurementsProperties = {
+  // body measurements
+  var bodyMeasurementsProperties = {
     "id" : {
       "type": "string",
       "description": "ID is created during creation of record"
@@ -99,7 +99,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   };
 
 
-  privateClient.declareType('body-type-measurement', {
+  privateClient.declareType('body-measurement', {
     "key": "id",
     "type": "object",
     "required": ["id", "region", "date_added", "date_updated", "@context"],
@@ -139,7 +139,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
      *
      * Parameters:
      *
-     *   type - the type of record being added. (defaults to 'body-type-measurement')
+     *   type - the type of record being added. (defaults to 'body-measurement')
      *   obj  - the JSON object to use
      *
      * Returns:
@@ -150,7 +150,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
     add: function (type, obj) {
       if (typeof type !== 'string') {
         obj = type;
-        type = 'body-type-measurement';
+        type = 'body-measurement';
       }
 
       obj.id = privateClient.uuid();
