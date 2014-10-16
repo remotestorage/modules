@@ -14,37 +14,26 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       env.schemas = {
         bad: [
           {
-            weight: 123
+            pounds: 123
           },
           {
             clothing: {
               pant_size: 38
             },
-            weight: {
-              minor: 250
-            },
-            height: {
-              minor: 144
-            }
+            weight: 250,
+            height: "really tall"
           }
         ],
         good: [
           {
-            region: "metric",
-            height: {
-              minor: 210
-            },
+            height: 210,
             clothing: {
-              pant_size: 32
+              dress_size: 5
             },
             thigh_size: 44
           },
           {
-            region: "usa",
-            height: {
-              major: 5,
-              minor: 11
-            }
+            height: 270
           }
         ]
       };

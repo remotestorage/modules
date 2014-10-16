@@ -3,7 +3,7 @@
  *
  * Nick Jennings <nick@silverbucket.net>
  *
- * Version:    - 0.0.2
+ * Version:    - 0.0.3
  *
  * This module stores fitness related data, such as body measurements,
  * excersize activity, etc.
@@ -14,78 +14,43 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
 
   var extend = remoteStorage.util.extend;
 
-  // // action
-  // var actionProperties = {
-  //   "actionStatus": {
-  //     "type": "string",
-  //     "description": ""
-  //   },
-  //   "repetitions": {
-  //     "type": "string",
-  //     "description": ""
-  //   },
-
-  // body measurements
-  var bodyMeasurementsProperties = {
+  // body measurement
+  var bodyMeasurementProperties = {
     "id" : {
       "type": "string",
       "description": "ID is created during creation of record"
     },
-    "region": {
-      "type": "string",
-      "description": "a string defining the measurement group type. e.g. imperial (stone+lbs, ft+inches), metric (kilos, cm) or usa (lbs, ft+inches)"
-    },
     "weight": {
-      "type": "object",
-      "description": "current weight of person in the specified regional unit of measurement",
-      "properties": {
-        "major": {
-          "type": "number",
-          "description": "depending on region -- imperial: stone, metric: kilo, usa: n/a"
-        },
-        "minor": {
-          "type": "number",
-          "description": "depending on region -- imperial: lbs, metric: n/a, usa: lbs"
-        }
-      }
+      "type": "number",
+      "description": "current weight of person in ounces",
     },
     "height": {
-      "type": "object",
-      "description": "current height of person in the specified regional unit of measurement",
-      "properties": {
-        "major": {
-          "type": "number",
-          "description": "depending on region -- imperial: feet, metric: n/a, usa: ft"
-        },
-        "minor": {
-          "type": "number",
-          "description": "depending on region -- imperial: inches, metric: cm, usa: inches"
-        }
-      }
+      "type": "number",
+      "description": "current height of the person in centimeters"
     },
     "chest_size": {
       "type": "number",
-      "description": "current circumference of chest (cm, inches)"
+      "description": "current circumference of chest (cm)"
     },
     "biceps_size": {
       "type": "number",
-      "description": "current circumference of biceps (cm, inches)"
+      "description": "current circumference of biceps (cm)"
     },
     "stomach_size": {
       "type": "number",
-      "description": "current circumference of belly (cm, inches)"
+      "description": "current circumference of belly (cm)"
     },
     "waist_size": {
       "type": "number",
-      "description": "current circumference of waist (cm, inches)"
+      "description": "current circumference of waist (cm)"
     },
     "hip_size": {
       "type": "number",
-      "description": "current circumference of hips (cm, inches)"
+      "description": "current circumference of hips (cm)"
     },
     "thigh_size": {
       "type": "number",
-      "description": "current circumference of thighs (cm, inches)"
+      "description": "current circumference of thighs (cm)"
     },
     "body_fat_percentage": {
       "type": "number",
@@ -122,9 +87,9 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   privateClient.declareType('body-measurement', {
     "key": "id",
     "type": "object",
-    "required": ["id", "region", "date_added", "date_updated", "@context"],
+    "required": ["id", "date_added", "date_updated", "@context"],
     "additionalProperties": false,
-    "properties": bodyMeasurementsProperties
+    "properties": bodyMeasurementProperties
   });
 
 
