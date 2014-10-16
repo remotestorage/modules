@@ -3,7 +3,7 @@
  *
  * Nick Jennings <nick@silverbucket.net>
  *
- * Version:    - 0.1.0
+ * Version:    - 0.2.0
  *
  * This module stores RSS/Atom feeds. It is used by https://dogfeed.5apps.com/
  *
