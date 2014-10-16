@@ -33,39 +33,59 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
     },
     "region": {
       "type": "string",
-      "description": "a string defining the measurement group type. e.g. UK (stone, inches), US (lbs, inches) or EU (kilos, cm)"
+      "description": "a string defining the measurement group type. e.g. imperial (stone+lbs, ft+inches), metric (kilos, cm) or usa (lbs, ft+inches)"
     },
     "weight": {
-      "type": "number",
-      "description": "current weight of person in the specified regional unit of measurement"
+      "type": "object",
+      "description": "current weight of person in the specified regional unit of measurement",
+      "properties": {
+        "major": {
+          "type": "number",
+          "description": "depending on region -- imperial: stone, metric: kilo, usa: n/a"
+        },
+        "minor": {
+          "type": "number",
+          "description": "depending on region -- imperial: lbs, metric: n/a, usa: lbs"
+        }
+      }
     },
     "height": {
-      "type": "number",
-      "description": "current height of person in the specified regional unit of measurement"
+      "type": "object",
+      "description": "current height of person in the specified regional unit of measurement",
+      "properties": {
+        "major": {
+          "type": "number",
+          "description": "depending on region -- imperial: feet, metric: n/a, usa: ft"
+        },
+        "minor": {
+          "type": "number",
+          "description": "depending on region -- imperial: inches, metric: cm, usa: inches"
+        }
+      }
     },
     "chest_size": {
       "type": "number",
-      "description": "current circumference of chest"
+      "description": "current circumference of chest (cm, inches)"
     },
     "biceps_size": {
       "type": "number",
-      "description": "current circumference of biceps"
+      "description": "current circumference of biceps (cm, inches)"
     },
     "stomach_size": {
       "type": "number",
-      "description": "current circumference of belly"
+      "description": "current circumference of belly (cm, inches)"
     },
     "waist_size": {
       "type": "number",
-      "description": "current circumference of waist"
+      "description": "current circumference of waist (cm, inches)"
     },
     "hip_size": {
       "type": "number",
-      "description": "current circumference of hips"
+      "description": "current circumference of hips (cm, inches)"
     },
     "thigh_size": {
       "type": "number",
-      "description": "current circumference of thighs"
+      "description": "current circumference of thighs (cm, inches)"
     },
     "body_fat_percentage": {
       "type": "number",
@@ -104,7 +124,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
     "type": "object",
     "required": ["id", "region", "date_added", "date_updated", "@context"],
     "additionalProperties": false,
-    "properties": bodyTypeMeasurementsProperties
+    "properties": bodyMeasurementsProperties
   });
 
 

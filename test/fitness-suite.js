@@ -20,22 +20,31 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
             clothing: {
               pant_size: 38
             },
-            weight: 250,
-            height: 144
+            weight: {
+              minor: 250
+            },
+            height: {
+              minor: 144
+            }
           }
         ],
         good: [
           {
-            region: "EU",
-            height: 210,
+            region: "metric",
+            height: {
+              minor: 210
+            },
             clothing: {
               pant_size: 32
             },
             thigh_size: 44
           },
           {
-            region: "US",
-            height: 70
+            region: "usa",
+            height: {
+              major: 5,
+              minor: 11
+            }
           }
         ]
       };
