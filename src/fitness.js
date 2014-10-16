@@ -3,7 +3,7 @@
  *
  * Nick Jennings <nick@silverbucket.net>
  *
- * Version:    - 0.1.0
+ * Version:    - 0.0.2
  *
  * This module stores fitness related data, such as body-type measurements,
  * excersize activity, etc.
@@ -33,7 +33,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
     },
     "region": {
       "type": "string",
-      "description": "a string defining the measurement group type. e.g. UK, US or EU"
+      "description": "a string defining the measurement group type. e.g. UK (stone, inches), US (lbs, inches) or EU (kilos, cm)"
     },
     "weight": {
       "type": "number",
@@ -74,9 +74,9 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
     "clothing": {
       "type": "object",
       "properties": {
-        "pants_size": {
+        "pant_size": {
           "type": "number",
-          "description": "current pants waist size"
+          "description": "current pant waist size"
         },
         "dress_size": {
           "type": "number",
@@ -102,7 +102,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   privateClient.declareType('body-type-measurement', {
     "key": "id",
     "type": "object",
-    "required": ["id", "region", "date_added", "@context"],
+    "required": ["id", "region", "date_added", "date_updated", "@context"],
     "additionalProperties": false,
     "properties": bodyTypeMeasurementsProperties
   });
@@ -150,7 +150,6 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
     add: function (type, obj) {
       if (typeof type !== 'string') {
         obj = type;
-      } else {
         type = 'body-type-measurement';
       }
 
