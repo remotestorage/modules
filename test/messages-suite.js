@@ -1,19 +1,24 @@
-require('./test/dependencies');
-require('./src/messages');
-
-define([], function () {
+if (typeof define !== 'function') {
+  var define = require('amdefine')(module);
+}
+define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, RemoteStorage) {
 
   'use strict';
 
   var suites = [];
 
+  global.Promise = Promise;
+
   // setup shared by all message suites
   function commonSetup(env) {
+    global.remoteStorage = new RemoteStorage();
     remoteStorage.caching.enable('/');
-    // email module
-    env.messages = remoteStorage.messages;
+    require('./../src/messages');
+    // messages module
+    remoteStorage.access.claim('messages', 'rw');
     // message scope (to test if stuff was stored correctly)
     env.messageScope = remoteStorage.scope('/messages/');
+    env.messages = remoteStorage.messages;
   }
 
   /**
@@ -24,6 +29,7 @@ define([], function () {
     name: 'message.drafts',
     desc: 'message draft management',
     setup: function(env, test) {
+
       commonSetup(env);
 
       // fixtures
@@ -44,7 +50,7 @@ define([], function () {
         actor: 'foo@bar.baz'
       };
 
-      test.done();
+      test.assertType(remoteStorage, 'object');
     },
 
     tests: [
@@ -108,8 +114,7 @@ define([], function () {
     desc: 'listing and opening message groups',
     setup: function(env, test) {
       commonSetup(env);
-
-      test.done();
+      test.assertType(remoteStorage, 'object');
     },
 
     tests: [
@@ -146,6 +151,7 @@ define([], function () {
         env.msgGroup = accountMsgs;
         test.done();
       });
+      test.assertType(remoteStorage, 'object');
     },
 
     tests: [
