@@ -14,7 +14,8 @@
     "remotestoragejs": "^0.10.3",
     "xmlhttprequest": "*",
     "localStorage": "*",
-    "bluebird": "2.x"
+    "bluebird": "2.x",
+    "sjcl": "1.0.x"
   },
   "devDependencies": {
     "jaribu": "*",
