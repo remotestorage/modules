@@ -18,7 +18,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   var bodyMeasurementProperties = {
     "id" : {
       "type": "string",
-      "description": "ID is created during creation of record"
+      "description": "ID is created during creation of record (and is a timestamp)"
     },
     "weight": {
       "type": "number",
@@ -93,87 +93,95 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   });
 
 
-  var fitness = {
+  var generateBaseMethods = function (type) {
 
-    on: privateClient.on.bind(privateClient),
+    var scopedClient = privateClient.scope(type + '/');
 
-    /**
-     * Function: remove
-     *
-     * Remove the record, as specified by ID.
-     *
-     * Parameters:
-     *
-     *   id - ID of record to remove
-     *
-     * Returns:
-     *
-     *   return a promise which is resolved upon successful deletion of record.
-     */
-    remove: function (id) {
-      if (typeof id !== 'string') {
-        return Promise.reject('require param \'id\' not specified');
-      }
-      return privateClient.remove(id);
-    },
+    return {
 
-    /**
-     * Function: add
-     *
-     * Add a new record of the specified type.
-     *
-     * Parameters:
-     *
-     *   type - the type of record being added. (defaults to 'body-measurement')
-     *   obj  - the JSON object to use
-     *
-     * Returns:
-     *
-     *   return a promise which is resolved with the saved object upon completion
-     *          (with fields `id` and `date_created` etc.)
-     */
-    add: function (type, obj) {
-      if (typeof type !== 'string') {
-        obj = type;
-        type = 'body-measurement';
-      }
+      on: scopedClient.on.bind(scopedClient),
 
-      obj.id = privateClient.uuid();
+      /**
+       * Function: remove
+       *
+       * Remove the record, as specified by ID.
+       *
+       * Parameters:
+       *
+       *   id - ID of record to remove
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved upon successful deletion of record.
+       */
+      remove: function (id) {
+        if (typeof id !== 'string') {
+          return Promise.reject('require param \'id\' not specified');
+        }
+        return scopedClient.remove(id);
+      },
 
-      if (!obj.date_added) {
-        obj.date_added = new Date().getTime();
-      }
-      obj.date_updated = new Date().getTime();
+      /**
+       * Function: add
+       *
+       * Add a new record.
+       *
+       * Parameters:
+       *
+       *   obj  - the JSON object to use
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved with the saved object upon completion
+       *          (with fields `id` and `date_created` etc.)
+       */
+      add: function (obj) {
+        var timestamp    = new Date().getTime();
+        obj.date_added   = timestamp;
+        obj.date_updated = timestamp;
+        obj.id           = ''+timestamp;
 
-      return privateClient.storeObject(type, obj.id, obj).then(function () {
-        return obj;
-      });
-    },
+        return scopedClient.storeObject(type, obj.id, obj).then(function () {
+          return obj;
+        });
+      },
 
-    /**
-     * Function: get
-     *
-     * Get a record by ID
-     *
-     * Parameters:
-     *
-     *   id - ID of record to fetch.
-     *
-     * Returns:
-     *
-     *   return a promise which is resolved with the desired object if it exists.
-     */
-    get: function (id) {
-      if (typeof id !== 'string') {
-        return Promise.reject('require param \'id\' not specified');
-      }
-      return privateClient.getObject(id);
-    },
+      /**
+       * Function: get
+       *
+       * Get a record by ID
+       *
+       * Parameters:
+       *
+       *   id - ID of record to fetch.
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved with the desired object if it exists.
+       */
+      get: function (id) {
+        if (typeof id !== 'string') {
+          return Promise.reject('require param \'id\' not specified');
+        }
+        return scopedClient.getObject(id);
+      },
 
-    getAll: privateClient.getAll.bind(privateClient),
+      getAll: scopedClient.getAll.bind(scopedClient),
 
-    getListing: privateClient.getListing.bind(privateClient)
+      getListing: scopedClient.getListing.bind(scopedClient)
+
+    };
+
   };
 
-  return { exports: fitness };
+  return {
+
+    exports: {
+
+      bodyMeasurement: generateBaseMethods('body-measurement')
+
+    }
+
+  };
+
 });
