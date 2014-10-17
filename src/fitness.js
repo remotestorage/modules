@@ -3,7 +3,7 @@
  *
  * Nick Jennings <nick@silverbucket.net>
  *
- * Version:    - 0.0.3
+ * Version:    - 0.0.4
  *
  * This module stores fitness related data, such as body measurements,
  * excersize activity, etc.
@@ -28,52 +28,52 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
       "type": "number",
       "description": "current height of the person in centimeters"
     },
-    "chest_size": {
+    "chestSize": {
       "type": "number",
       "description": "current circumference of chest (cm)"
     },
-    "biceps_size": {
+    "bicepsSize": {
       "type": "number",
       "description": "current circumference of biceps (cm)"
     },
-    "stomach_size": {
+    "stomachSize": {
       "type": "number",
       "description": "current circumference of belly (cm)"
     },
-    "waist_size": {
+    "waistSize": {
       "type": "number",
       "description": "current circumference of waist (cm)"
     },
-    "hip_size": {
+    "hipSize": {
       "type": "number",
       "description": "current circumference of hips (cm)"
     },
-    "thigh_size": {
+    "thighSize": {
       "type": "number",
       "description": "current circumference of thighs (cm)"
     },
-    "body_fat_percentage": {
+    "bodyFatPercentage": {
       "type": "number",
       "description": "current body fat percentage"
     },
     "clothing": {
       "type": "object",
       "properties": {
-        "pant_size": {
+        "pantSize": {
           "type": "number",
           "description": "current pant waist size"
         },
-        "dress_size": {
+        "dressSize": {
           "type": "number",
           "description": "current dress size"
         }
       }
     },
-    "date_added": {
+    "createdAt": {
       "type": "number",
-      "description": "date measurements were added"
+      "description": "date measurements were created"
     },
-    "date_updated": {
+    "updatedAt": {
       "type": "number",
       "description": "date measurements were updated"
     },
@@ -87,7 +87,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
   privateClient.declareType('body-measurement', {
     "key": "id",
     "type": "object",
-    "required": ["id", "date_added", "date_updated", "@context"],
+    "required": ["id", "createdAt", "updatedAt", "@context"],
     "additionalProperties": false,
     "properties": bodyMeasurementProperties
   });
@@ -122,7 +122,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
       },
 
       /**
-       * Function: add
+       * Function: create
        *
        * Add a new record.
        *
@@ -135,11 +135,11 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
        *   return a promise which is resolved with the saved object upon completion
        *          (with fields `id` and `date_created` etc.)
        */
-      add: function (obj) {
-        var timestamp    = new Date().getTime();
-        obj.date_added   = timestamp;
-        obj.date_updated = timestamp;
-        obj.id           = ''+timestamp;
+      create: function (obj) {
+        var timestamp = new Date().getTime();
+        obj.createdAt = timestamp;
+        obj.updatedAt = timestamp;
+        obj.id        = ''+timestamp;
 
         return scopedClient.storeObject(type, obj.id, obj).then(function () {
           return obj;
