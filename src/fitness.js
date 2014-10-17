@@ -116,7 +116,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
        */
       remove: function (id) {
         if (typeof id !== 'string') {
-          return Promise.reject('require param \'id\' not specified');
+          return Promise.reject('Required param \'id\' not specified.');
         }
         return scopedClient.remove(id);
       },
@@ -139,7 +139,32 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
         var timestamp = new Date().getTime();
         obj.createdAt = timestamp;
         obj.updatedAt = timestamp;
-        obj.id        = ''+timestamp;
+        obj.id        = '' + timestamp;  // filenames must be strings
+
+        return scopedClient.storeObject(type, obj.id, obj).then(function () {
+          return obj;
+        });
+      },
+
+      /**
+       * Function: update
+       *
+       * Update an existing record.
+       *
+       * Parameters:
+       *
+       *   obj  - the JSON object to use (must contain existing ID)
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved with the updated object upon completion
+       *
+       */
+      update: function (obj) {
+        if (!obj.id) {
+          return Promise.reject('Object has no \'id\' property, cannot update.');
+        }
+        obj.updatedAt = new Date().getTime();
 
         return scopedClient.storeObject(type, obj.id, obj).then(function () {
           return obj;

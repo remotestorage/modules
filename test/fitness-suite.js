@@ -27,13 +27,15 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
         good: [
           {
             height: 210,
+            weight: 75,
             clothing: {
               dressSize: 5
             },
             thighSize: 44
           },
           {
-            height: 270
+            height: 270,
+            chestSize: 102
           }
         ]
       };
@@ -109,12 +111,28 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "# fitness.bodyMeasurement.get (verify update) good[0]",
+        desc: "# fitness.update good[0]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.get(env.schemas.good[0].id).then(function (f) {
+          env.schemas.good[0].stomachSize = 102;
+          return env.fitness.bodyMeasurement.update(env.schemas.good[0]).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[0].id);
-            test.assert(f.region, env.schemas.good[0].region);
+            test.assertAnd(f.stomachSize, 102);
+            test.assertTypeAnd(f.height, 'number');
+            test.assert(f.height, env.schemas.good[0].height);
+          });
+        }
+      },
+
+      {
+        desc: "# fitness.get (verify update) good[0]",
+        run: function (env, test) {
+          return env.fitness.bodyMeasurement.get(env.schemas.good[0].id).then(function (f) {
+            test.assertTypeAnd(f, 'object');
+            test.assertAnd(f.id, env.schemas.good[0].id);
+            test.assertAnd(f.stomachSize, 102);
+            test.assertTypeAnd(f.weight, 'number');
+            test.assert(f.weight, env.schemas.good[0].weight);
           });
         }
       },
