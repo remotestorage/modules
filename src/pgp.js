@@ -58,7 +58,7 @@ RemoteStorage.defineModule('pgp', function(privateClient) {
       },
 
       getKeypair: function(keyid) {
-        return promising(function(p) {
+        return Promise(function(p) {
           var i = 0;
           var result = {};
           function setter(key) {

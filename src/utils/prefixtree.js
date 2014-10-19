@@ -268,14 +268,12 @@ PrefixTree = function(baseClient) {
      *   dirs - to be left undefined
      */
     fireInitial: function(dirs) {
-      var thisPrefix, promise;
+      var thisPrefix;
       if (Array.isArray(dirs)) {
         if (dirs.length) {
           thisPrefix = dirs.pop();
         } else {
-          promise = promising();
-          promise.fulfill();
-          return promise;
+          return Promise.resolve();
         }
       } else {
         dirs = [];
