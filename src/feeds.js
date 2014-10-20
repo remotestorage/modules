@@ -3,13 +3,13 @@
  *
  * Nick Jennings <nick@silverbucket.net>
  *
- * Version:    - 0.2.1
+ * Version:    - 1.0.0
  *
  * This module stores RSS/Atom feeds. It is used by https://dogfeed.5apps.com/
  *
  */
 
-RemoteStorage.defineModule('feeds', function(privateClient, publicClient) {
+RemoteStorage.defineModule('feeds', function (privateClient, publicClient) {
 
   var extend = RemoteStorage.util.extend;
   var md5sum = RemoteStorage.util.md5sum;
@@ -44,19 +44,19 @@ RemoteStorage.defineModule('feeds', function(privateClient, publicClient) {
       "type": "string",
       "description": "language of feed"
     },
-    "cache_articles": {
+    "numArticlesToCache": {
       "type": "number",
       "description": "number of articles to store starting from latest"
     },
-    "last_fetched": {
+    "fetchedAt": {
       "type": "number",
       "description": "last time feed was fetched"
     },
-    "date_added": {
+    "createdAt": {
       "type": "number",
       "description": "date feed was added"
     },
-    "date_updated": {
+    "updatedAt": {
       "type": "number",
       "description": "date feed was added"
     },
@@ -69,7 +69,7 @@ RemoteStorage.defineModule('feeds', function(privateClient, publicClient) {
   privateClient.declareType('rss-atom-feed', {
     "key": "id",
     "type": "object",
-    "required": ["id", "url", "date_added", "date_updated", "@context"],
+    "required": ["id", "url", "createdAt", "updatedAt", "@context"],
     "additionalProperties": false,
     "properties": extend({
       "author": {
@@ -80,51 +80,131 @@ RemoteStorage.defineModule('feeds', function(privateClient, publicClient) {
   });
 
 
-  var feeds = {
+  var generateBaseMethods = function (type) {
 
-    on: privateClient.on.bind(privateClient),
+    var scopedClient = privateClient.scope(type + '/');
 
-    remove: function (url) {
-      if (typeof url !== 'string') {
-        return Promise.reject('require param \'url\' not specified');
-      }
-      var id = md5sum(url);
-      return privateClient.remove(id);
-    },
+    return {
 
-    add: function (type, obj) {
-      if (typeof type !== 'string') {
-        obj = type;
-      }
-      if (typeof obj.url === 'string') {
+      on: scopedClient.on.bind(scopedClient),
+
+      /**
+       * Function: remove
+       *
+       * Remove the record, as specified by url.
+       *
+       * Parameters:
+       *
+       *   url - url of record to remove
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved upon successful deletion of record.
+       */
+      remove: function (url) {
+        if (typeof url !== 'string') {
+          return Promise.reject('Required param \'url\' not specified.');
+        }
+        var id = md5sum(url);
+        return scopedClient.remove(id);
+      },
+
+      /**
+       * Function: create
+       *
+       * Add a new record.
+       *
+       * Parameters:
+       *
+       *   obj  - the JSON object to use
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved with the saved object upon completion
+       *          (with fields `id` and `date_created` etc.)
+       */
+      create: function (obj) {
+        if (typeof obj.url !== 'string') {
+          return Promise.reject('Required property \'url\' not found in object.');
+        }
+
         obj.id = md5sum(obj.url);
-      } else {
-        return Promise.reject('require property \'url\' not found');
-      }
-      if (!obj.date_added) {
-        obj.date_added = new Date().getTime();
-      }
-      obj.date_updated = new Date().getTime();
 
-      return privateClient.storeObject('rss-atom-feed', obj.id, obj).then(function () {
-        return obj;
-      });
-    },
+        var timestamp = new Date().getTime();
+        obj.createdAt = timestamp;
+        obj.updatedAt = timestamp;
 
-    get: function (url) {
-      if (typeof url !== 'string') {
-        return Promise.reject('require param \'url\' not specified');
-      }
-      var id = md5sum(url);
-      return privateClient.getObject(id);
-    },
+        return scopedClient.storeObject(type, obj.id, obj).then(function () {
+          return obj;
+        });
+      },
 
-    md5sum: md5,
+      /**
+       * Function: update
+       *
+       * Update an existing record.
+       *
+       * Parameters:
+       *
+       *   obj  - the JSON object to use (must contain existing ID)
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved with the updated object upon completion
+       *
+       */
+      update: function (obj) {
+        if (!obj.id) {
+          return Promise.reject('Object has no \'id\' property, cannot update.');
+        }
+        obj.updatedAt = new Date().getTime();
 
-    getAll: privateClient.getAll.bind(privateClient),
+        return scopedClient.storeObject(type, obj.id, obj).then(function () {
+          return obj;
+        });
+      },
 
-    getListing: privateClient.getListing.bind(privateClient)
+      /**
+       * Function: get
+       *
+       * Get a record by url
+       *
+       * Parameters:
+       *
+       *   url - url of record to fetch.
+       *
+       * Returns:
+       *
+       *   return a promise which is resolved with the desired object if it exists.
+       */
+      get: function (url) {
+        if (typeof url !== 'string') {
+          return Promise.reject('Required param \'url\' not specified.');
+        }
+        var id = md5sum(url);
+        console.log('fetching: ['+url+'] ', id);
+        return scopedClient.getObject(id);
+      },
+
+      md5sum: md5sum,
+
+      getAll: scopedClient.getAll.bind(scopedClient),
+
+      getListing: scopedClient.getListing.bind(scopedClient)
+    };
+
   };
 
-  return { exports: feeds };
+  return {
+
+    exports: {
+
+      on: privateClient.on.bind(privateClient),
+
+      rssAtom: generateBaseMethods('rss-atom-feed')
+
+    }
+
+  };
+
 });

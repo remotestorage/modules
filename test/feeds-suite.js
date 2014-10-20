@@ -5,7 +5,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
   var suites = [];
 
   suites.push({
-    desc: 'feeds',
+    desc: '# feeds.rssAtom',
     setup: function (env, test) {
       global.remoteStorage = new RemoteStorage();
       require('./../src/feeds');
@@ -38,33 +38,51 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
     tests: [
 
       {
-        desc: "#feeds.getAll returns empty object",
+        desc: "# fitness.bodyMeasurement exists",
         run: function (env, test) {
-          env.feeds.getAll().then(function (feeds) {
+          test.assertType(env.feeds.rssAtom, 'object');
+        }
+      },
+
+      {
+        desc: "# feeds.rssAtom.getAll returns empty object",
+        run: function (env, test) {
+          env.feeds.rssAtom.getAll().then(function (feeds) {
             test.assert(feeds, {});
           }, test.fail);
         }
       },
 
       {
-        desc: "#feeds.add bad[0]",
+        desc: "# feeds.rssAtom.create bad[0]",
         willFail: true,
         run: function (env, test) {
-          return env.feeds.add(env.schemas.bad[0]);
+          return env.feeds.rssAtom.create(env.schemas.bad[0]);
         }
       },
       {
-        desc: "#feeds.add bad[1]",
+        desc: "# feeds.rssAtom.create bad[1]",
         willFail: true,
         run: function (env, test) {
-          return env.feeds.add(env.schemas.bad[1]);
+          return env.feeds.rssAtom.create(env.schemas.bad[1]);
         }
       },
 
       {
-        desc: "#feeds.add feed[0]",
+        desc: "# feeds.rssAtom.getListing ",
         run: function (env, test) {
-          return env.feeds.add(env.schemas.good[0]).then(function (f) {
+          return env.feeds.rssAtom.getListing().then(function (l) {
+            test.assertTypeAnd(l, 'object');
+            var expected = {};
+            test.assert(l, expected);
+          });
+        }
+      },
+
+      {
+        desc: "# feeds.rssAtom.create good[0]",
+        run: function (env, test) {
+          return env.feeds.rssAtom.create(env.schemas.good[0]).then(function (f) {
             env.schemas.good[0] = f;
             test.assertType(f.id, 'string');
           });
@@ -72,9 +90,9 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.add feed[1]",
+        desc: "# feeds.rssAtom.create good[1]",
         run: function (env, test) {
-          return env.feeds.add(env.schemas.good[1]).then(function (f) {
+          return env.feeds.rssAtom.create(env.schemas.good[1]).then(function (f) {
             env.schemas.good[1] = f;
             test.assertType(f.id, 'string');
           });
@@ -82,9 +100,9 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.get feed[0]",
+        desc: "# feeds.rssAtom.get good[0]",
         run: function (env, test) {
-          return env.feeds.get(env.schemas.good[0].url).then(function (f) {
+          return env.feeds.rssAtom.get(env.schemas.good[0].url).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[0].id);
             test.assertAnd(f.url, env.schemas.good[0].url);
@@ -94,10 +112,10 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.add (update) feed[0]",
+        desc: "# feeds.rssAtom.update good[0]",
         run: function (env, test) {
           env.schemas.good[0].title = 'Bluebird';
-          return env.feeds.add(env.schemas.good[0]).then(function (f) {
+          return env.feeds.rssAtom.update(env.schemas.good[0]).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[0].id);
             test.assertAnd(f.url, env.schemas.good[0].url);
@@ -107,9 +125,9 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.get (verify update) feed[0]",
+        desc: "# feeds.rssAtom.get (verify update) good[0]",
         run: function (env, test) {
-          return env.feeds.get(env.schemas.good[0].url).then(function (f) {
+          return env.feeds.rssAtom.get(env.schemas.good[0].url).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[0].id);
             test.assertAnd(f.url, env.schemas.good[0].url);
@@ -119,9 +137,9 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.getListing ",
+        desc: "# feeds.rssAtom.getListing ",
         run: function (env, test) {
-          return env.feeds.getListing().then(function (l) {
+          return env.feeds.rssAtom.getListing().then(function (l) {
             test.assertTypeAnd(l, 'object');
             var expected = {};
             expected[env.schemas.good[0].id] = true;
@@ -132,9 +150,9 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.getAll (two records)",
+        desc: "# feeds.rssAtom.getAll (two records)",
         run: function (env, test) {
-          return env.feeds.getAll().then(function (feeds) {
+          return env.feeds.rssAtom.getAll().then(function (feeds) {
             test.assertTypeAnd(feeds, 'object');
             test.assertType(feeds[env.schemas.good[1].id], 'object');
           });
@@ -142,25 +160,25 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.delete feed[0]",
+        desc: "# feeds.rssAtom.delete good[0]",
         run: function (env, test) {
-          return env.feeds.remove(env.schemas.good[0].url);
+          return env.feeds.rssAtom.remove(env.schemas.good[0].url);
         }
       },
 
       {
-        desc: "#feeds.get feed[0]",
+        desc: "# feeds.rssAtom.get good[0]",
         run: function (env, test) {
-          return env.feeds.get(env.schemas.good[0].url).then(function (f) {
+          return env.feeds.rssAtom.get(env.schemas.good[0].url).then(function (f) {
             test.assert(f, undefined);
           });
         }
       },
 
       {
-        desc: "#feeds.get feed[1]",
+        desc: "# feeds.rssAtom.get good[1]",
         run: function (env, test) {
-          return env.feeds.get(env.schemas.good[1].url).then(function (f) {
+          return env.feeds.rssAtom.get(env.schemas.good[1].url).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[1].id);
             test.assertAnd(f.url, env.schemas.good[1].url);
@@ -170,9 +188,9 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       },
 
       {
-        desc: "#feeds.getAll (one record)",
+        desc: "# feeds.rssAtom.getAll (one record)",
         run: function (env, test) {
-          return env.feeds.getAll().then(function (feeds) {
+          return env.feeds.rssAtom.getAll().then(function (feeds) {
             test.assertTypeAnd(feeds, 'object');
             test.assertType(feeds[env.schemas.good[0].id], 'undefined');
             test.assertType(feeds[env.schemas.good[1].id], 'object');
