@@ -45,9 +45,16 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
     tests: [
 
       {
+        desc: "# fitness.bodyMeasurement exists",
+        run: function (env, test) {
+          test.assertType(remoteStorage.fitness.bodyMeasurement, 'object');
+        }
+      },
+
+      {
         desc: "# fitness.bodyMeasurement.getAll returns empty object",
         run: function (env, test) {
-          env. fitness.bodyMeasurement.getAll().then(function (fitness) {
+          env.fitness.bodyMeasurement.getAll().then(function (fitness) {
             test.assert(fitness, {});
           }, test.fail);
         }
@@ -57,21 +64,21 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
         desc: "# fitness.bodyMeasurement.create bad[0]",
         willFail: true,
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.create(env.schemas.bad[0]);
+          return env.fitness.bodyMeasurement.create(env.schemas.bad[0]);
         }
       },
       {
         desc: "# fitness.bodyMeasurement.create bad[1]",
         willFail: true,
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.create(env.schemas.bad[1]);
+          return env.fitness.bodyMeasurement.create(env.schemas.bad[1]);
         }
       },
 
       {
         desc: "# fitness.bodyMeasurement.getListing ",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.getListing().then(function (l) {
+          return env.fitness.bodyMeasurement.getListing().then(function (l) {
             test.assertTypeAnd(l, 'object');
             var expected = {};
             test.assert(l, expected);
@@ -82,7 +89,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.create good[0]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.create(env.schemas.good[0]).then(function (f) {
+          return env.fitness.bodyMeasurement.create(env.schemas.good[0]).then(function (f) {
             env.schemas.good[0] = f;
             test.assertType(f.id, 'string');
           });
@@ -92,7 +99,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.create good[1]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.create(env.schemas.good[1]).then(function (f) {
+          return env.fitness.bodyMeasurement.create(env.schemas.good[1]).then(function (f) {
             env.schemas.good[1] = f;
             test.assertType(f.id, 'string');
           });
@@ -102,7 +109,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.get good[0]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.get(env.schemas.good[0].id).then(function (f) {
+          return env.fitness.bodyMeasurement.get(env.schemas.good[0].id).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[0].id);
             test.assert(f.region, env.schemas.good[0].region);
@@ -140,7 +147,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.getListing ",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.getListing().then(function (l) {
+          return env.fitness.bodyMeasurement.getListing().then(function (l) {
             test.assertTypeAnd(l, 'object');
             var expected = {};
             expected[env.schemas.good[0].id] = true;
@@ -153,7 +160,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.getAll (two records)",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.getAll().then(function (fitness) {
+          return env.fitness.bodyMeasurement.getAll().then(function (fitness) {
             test.assertTypeAnd(fitness, 'object');
             test.assertType(fitness[env.schemas.good[1].id], 'object');
           });
@@ -163,14 +170,14 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.delete good[0]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.remove(env.schemas.good[0].id);
+          return env.fitness.bodyMeasurement.remove(env.schemas.good[0].id);
         }
       },
 
       {
         desc: "# fitness.bodyMeasurement.get good[0]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.get(env.schemas.good[0].id).then(function (f) {
+          return env.fitness.bodyMeasurement.get(env.schemas.good[0].id).then(function (f) {
             test.assert(f, undefined);
           });
         }
@@ -179,7 +186,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.get good[1]",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.get(env.schemas.good[1].id).then(function (f) {
+          return env.fitness.bodyMeasurement.get(env.schemas.good[1].id).then(function (f) {
             test.assertTypeAnd(f, 'object');
             test.assertAnd(f.id, env.schemas.good[1].id);
             test.assert(f.region, env.schemas.good[1].region);
@@ -190,7 +197,7 @@ define(['require', 'bluebird', 'remotestoragejs'], function (require, Promise, R
       {
         desc: "# fitness.bodyMeasurement.getAll (one record)",
         run: function (env, test) {
-          return env. fitness.bodyMeasurement.getAll().then(function (fitness) {
+          return env.fitness.bodyMeasurement.getAll().then(function (fitness) {
             test.assertTypeAnd(fitness, 'object');
             test.assertTypeAnd(fitness[env.schemas.good[0].id], 'undefined');
             test.assertType(fitness[env.schemas.good[1].id], 'object');

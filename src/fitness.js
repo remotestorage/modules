@@ -186,7 +186,7 @@ RemoteStorage.defineModule('fitness', function (privateClient, publicClient) {
        */
       get: function (id) {
         if (typeof id !== 'string') {
-          return Promise.reject('require param \'id\' not specified');
+          return Promise.reject('Required param \'id\' not specified.');
         }
         return scopedClient.getObject(id);
       },
