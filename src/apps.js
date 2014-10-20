@@ -123,7 +123,7 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
    */
   function installApp(name) {
     apps[name] = defaultApps[name];
-    privClient.storeObject('app', name, apps[name]);
+    return privClient.storeObject('app', name, apps[name]);
   }
 
   /**
@@ -185,15 +185,15 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
     RemoteStorage.config.changeEvents.window = true;
     privClient.cache('', 'ALL');
     privClient.on('change', function(evt) {
-      if (evt.relativePath === 'channel-url'
-          && evt.newValue != evt.oldValue) {//this is a workaround for https://github.com/remotestorage/remotestorage.js/issues/764
-        console.log('channel-url change', evt);
-        channelChangeHandler(evt.newValue);
-      } else {
-        if (evt.newValue) {
-          apps[evt.relativePath] = evt.newValue;
+      if (evt.newValue !== evt.oldValue) {//this is a workaround for https://github.com/remotestorage/remotestorage.js/issues/764
+        if (evt.relativePath === 'channel-url') {
+          channelChangeHandler(evt.newValue);
         } else {
-          delete apps[evt.relativePath];
+          if (evt.newValue) {
+            apps[evt.relativePath] = evt.newValue;
+          } else {
+            delete apps[evt.relativePath];
+          }
         }
       }
       appsChangeHandler(apps);
@@ -241,18 +241,21 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
   function cloneApp(name) {
     var pending = Promise.defer(), numDone = 0, i;
     if (Array.isArray(apps[name].assets) && apps[name].assets.length >= 1) {
-      return remoteStorage.www.addAuthoringPort().then(function(authoringPort) {
-        for (i=0; i<apps[name].assets.length; i++) {
-          getAsset(name, apps[name].href, apps[name].assets[i], authoringPort).then(function() {
-            numDone++;
-            if (numDone === apps[name].assets.length) {
+      var authoringPort = remoteStorage.www.addAuthoringPort();
+      for (i=0; i<apps[name].assets.length; i++) {
+        getAsset(name, apps[name].href, apps[name].assets[i], authoringPort).then(function() {
+          numDone++;
+          if (numDone === apps[name].assets.length) {
+            apps[name].href = remoteStorage.www.getWebUrl(authoringPort, '');
+            apps[name].cloned = true;
+            privClient.storeObject('app', name, apps[name]).then(function() {
               pending.resolve();
-            }
-          }, function() {
-            pending.reject('error retrieving one of the assets');
-          });
-        }
-      });
+            });
+          }
+        }, function() {
+          pending.reject('error retrieving one of the assets');
+        });
+      }
     } else {
       pending.reject('could not determine assets of ' + name);
     }
@@ -282,16 +285,17 @@ RemoteStorage.defineModule('apps', function(privClient, pubClient) {
    * which are available to install.
    *
    * Parameters:
-   *   (none)
+   *   cloneableOnly - boolean; if set to true, only returns apps whose assets
+   *                       you can clone to your own storage.
    *
    * Returns: A dictionary from string app names to objects that follow the
    *              apps/app schema defined above.
    */
-  function getAvailableApps() {
+  function getAvailableApps(cloneableOnly) {
     return fetchDefaultApps().then(function() {
       var i, availableApps = {};
       for (i in defaultApps) {
-        if (!apps[i]) {
+        if (!apps[i] && (Array.isArray(defaultApps[i].assets) || !cloneableOnly)) {
           availableApps[i] = defaultApps[i];
         }
       }
