@@ -60,7 +60,11 @@ CredentialsStore.prototype.setConfig = function(pwd, config) {
   if (pwd && (typeof sjcl === 'undefined')) {
     throw 'please include sjcl.js (the Stanford JS Crypto Library) in your app';
   }
-  config['@context'] = 'http://remotestorage.io/spec/modules/' + this.moduleName + '/config';
+  if (this.moduleName === 'sockethub-credentials' || this.moduleName === 'irc-credentials') {
+    config['@context'] = 'http://remotestorage.io/spec/modules/' + this.moduleName + '/credentials';
+  } else {
+    config['@context'] = 'http://remotestorage.io/spec/modules/' + this.moduleName + '/config';
+  }
   var validationResult = this.privClient.validate(config);
   if (!validationResult.valid) {
     return Promise.reject('Please follow the config schema - ' + JSON.stringify(validationResult));
