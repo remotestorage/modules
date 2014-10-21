@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: Variables, Properties, General, Classes, Files, Functions
+Don't Index: Properties, Classes, Files, Variables, Functions, General
 
 
 # --------------------------------------------------------------------------
@@ -65,6 +65,8 @@ Group: Modules  {
    File: Documents  (/home/michiel/other-dev/modules/src/documents.js)
    File: Email Credentials  (/home/michiel/other-dev/modules/src/email-credentials.js)
    File: Facebook  (/home/michiel/other-dev/modules/src/facebook-credentials.js)
+   File: Feeds  (/home/michiel/other-dev/modules/src/feeds.js)
+   File: Fitness  (/home/michiel/other-dev/modules/src/fitness.js)
    File: IRC Credentials  (/home/michiel/other-dev/modules/src/irc-credentials.js)
    File: Messages  (/home/michiel/other-dev/modules/src/messages.js)
    File: PGP  (/home/michiel/other-dev/modules/src/pgp.js)
@@ -81,6 +83,7 @@ Group: Modules  {
       File: SyncedVar  (/home/michiel/other-dev/modules/src/utils/syncedvar.js)
       }  # Group: Utils
 
+   File: www  (/home/michiel/other-dev/modules/src/www.js)
    File: XMPP Credentials  (/home/michiel/other-dev/modules/src/xmpp-credentials.js)
    }  # Group: Modules
 
