@@ -41,6 +41,6 @@ RemoteStorage.defineModule('irc-credentials', function(privClient, pubClient) {
   });
 
   return {
-    exports: new CredentialsStore('irc-credntials', privClient)
+    exports: new CredentialsStore('irc-credentials', privClient)
   };
 });
