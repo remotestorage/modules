@@ -36,6 +36,9 @@ RemoteStorage.defineModule('sockethub-credentials', function(privateClient, publ
       secret: {
         type: 'string',
         description: 'the secret to identify yourself with the sockethub server'
+      },
+      '@context': {
+         type: 'string'
       }
     }
   });

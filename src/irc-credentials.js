@@ -35,7 +35,8 @@ RemoteStorage.defineModule('irc-credentials', function(privClient, pubClient) {
         type: 'string'
       },
       server: {
-        type: 'uri'
+        type: 'string',
+        format: 'uri'
       }
     },
   });
