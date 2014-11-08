@@ -6,6 +6,8 @@
  *
  */
 RemoteStorage.defineModule('irc-credentials', function(privClient, pubClient) {
+  privClient.cache('', 'ALL');
+
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
@@ -44,7 +46,30 @@ RemoteStorage.defineModule('irc-credentials', function(privClient, pubClient) {
     },
   });
 
+  var credentialsStore = new CredentialsStore('irc-credentials', privClient);
+
+  function onceRooms(handler) {
+    privClient.on('change', function(evt) {
+      if (evt.relativePath === 'rooms') {
+        handler(evt.newValue);
+      }
+    });
+    privClient.getFile('rooms').then(function(obj) {
+      handler(obj.data);
+    });
+  }
+  function setRooms(obj) {
+    privClient.storeFile('application/json', 'rooms', JSON.stringify(obj));
+  }
+
   return {
-    exports: new CredentialsStore('irc-credentials', privClient)
+    exports: {
+      getConfig: credentialsStore.getConfig.bind(credentialsStore),
+      setConfig: credentialsStore.setConfig.bind(credentialsStore),
+      onceConfig: credentialsStore.onceConfig.bind(credentialsStore),
+      on: credentialsStore.on.bind(credentialsStore),
+      setRooms: setRooms,
+      onceRooms: onceRooms
+    }
   };
 });

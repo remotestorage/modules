@@ -54,6 +54,8 @@ function CredentialsStore(moduleName, privClient) {
  *   'Please follow the config schema - (followed by the schema from your declareType)'
  */
 CredentialsStore.prototype.setConfig = function(pwd, config) {
+  console.log('setConfig', this.moduleName, pwd, config, JSON.stringify(config));
+
   if (typeof(config) !== 'object') {
     throw 'config should be an object';
   }
@@ -73,7 +75,7 @@ CredentialsStore.prototype.setConfig = function(pwd, config) {
   if(typeof(pwd) === 'string') {
     config = this.algorithmPrefix + sjcl.encrypt(pwd, config);
   }
-  return this.privClient.storeFile('application/json', this.moduleName+'-config', config);
+  return this.privClient.storeFile('application/json', this.moduleName + '-config', config);
 };
 
 /**
@@ -83,6 +85,7 @@ CredentialsStore.prototype.setConfig = function(pwd, config) {
  *
  * Parameters:
  *   pwd - String value of the password for client-side encryption, or undefined.
+ *   maxAge - maxAge to pass to baseClient.getFile
  *
  * Throws:
  *   'please include sjcl.js (the Stanford JS Crypto Library) in your app'
@@ -91,11 +94,11 @@ CredentialsStore.prototype.setConfig = function(pwd, config) {
  *   '(moduleName)-config is encrypted, please specify a password for decryption'
  *   '(moduleName)-config is not encrypted, or encrypted with a different algorithm'
  */
-CredentialsStore.prototype.getConfig = function(pwd) {
+CredentialsStore.prototype.getConfig = function(pwd, maxAge) {
   if (pwd && (typeof sjcl === 'undefined')) {
     throw 'please include sjcl.js (the Stanford JS Crypto Library) in your app';
   }
-  return this.privClient.getFile(this.moduleName + '-config', undefined).then(function(a) {
+  return this.privClient.getFile(this.moduleName + '-config', maxAge).then(function(a) {
     if (typeof(a) === 'object' && typeof(a.data) === 'string') {
       if (typeof(pwd) === 'string') {
         if (a.data.substring(0, this.algorithmPrefix.length) !== this.algorithmPrefix) {
@@ -124,6 +127,33 @@ CredentialsStore.prototype.getConfig = function(pwd) {
     return a.data;
   }.bind(this));
 };
+
+/**
+ * Function: onceConfig
+ *
+ * Get the config/credentials, or wait for it to become available
+ *
+ * Parameters:
+ *   pwd - String value of the password for client-side encryption, or undefined.
+ *
+ * Throws:
+ *   'please include sjcl.js (the Stanford JS Crypto Library) in your app'
+ *   'could not decrypt (moduleName)-config with that password'
+ *   'could not parse (moduleName)-config as unencrypted JSON'
+ *   '(moduleName)-config is encrypted, please specify a password for decryption'
+ *   '(moduleName)-config is not encrypted, or encrypted with a different algorithm'
+ */
+CredentialsStore.prototype.onceConfig = function(pwd) {
+  return this.getConfig(pwd, 20000).then(undefined, function(err) {//allow config to be 20 seconds old
+    var pending = Promise.defer();
+    this.privClient.on('change', function(evt) {
+      this.onceConfig(pwd).then(function(data) {
+        pending.resolve(data);
+      });
+    }.bind(this));
+    return pending.promise;
+  }.bind(this));
+}
 
 /**
  * Function: on

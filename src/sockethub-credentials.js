@@ -6,6 +6,8 @@
  *
  */
 RemoteStorage.defineModule('sockethub-credentials', function(privateClient, publicClient) {
+  privateClient.cache('', 'ALL');
+
   if(!CredentialsStore) {
     throw new Error('please include utils/credentialsstore.js');
   }
