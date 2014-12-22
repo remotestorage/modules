@@ -1,72 +1,35 @@
 require('./test/dependencies');
 requireAndLoad('./src/utils/credentialsstore', 'RemoteStorage.util.CredentialsStore');
 
-define(['require'], function(require) {
+define(['requirejs'], function(requirejs) {
 
   var suites = [];
 
   suites.push({
     desc: 'CredentialsStore suite',
     setup: function (env, test) {
-      env.baseClient = {
-        on: function(eventName, handler) { env.handlers[eventName].push(handler); },
-        uuid: function () { return 'test'; },
-      };
-      env.responses = {};
-      env.handlers = {
-        change: []
-      };
-
-      function mock(obj, functionName) {
-        obj[functionName] = function() {
-          var i, input = [functionName].concat(Array.prototype.slice.call(arguments));
-          if (!env.responses[input]) {
-            console.log('MISSING (or falsy) RESPONSE', input, Object.keys(env.responses));
-          }
-          env.called.push(input);
-          if (env.responses[input] === 'ERROR') {
-            throw 'mocked error';
-          }
-          return env.responses[input];
-        };
+      global.RemoteStorage = require('./node_modules/remotestoragejs/remotestorage-node.js');
+      global.remoteStorage = new global.RemoteStorage();
+      if (typeof global.RemoteStorage.util !== 'object') {
+        global.RemoteStorage.util = {};
       }
-      mock(env.baseClient, 'getFile');
-      mock(env.baseClient, 'storeFile');
-      mock(env.baseClient, 'validate');
-      global.sjcl = {};
-      mock(global.sjcl, 'encrypt');
-      mock(global.sjcl, 'decrypt');
-      env.credentialsStore = new RemoteStorage.util.CredentialsStore('foo', env.baseClient);
-      test.done();
+      require('./node_modules/sjcl/sjcl.js');
+      require('./src/utils/credentialsstore.js');
+      require('./src/irc_credentials.js');
+      remoteStorage.access.claim('irc_credentials', 'rw');
+      test.assertType(remoteStorage.irc_credentials, 'object');
     },
     tests: [
 
       {
         desc: "set and get, no encryption",
         run: function (env, test) {
-          var storeFilePromise = promising(), getFilePromise = promising();
-          env.called = [];
-          env.responses = {};
-          env.responses[ ['validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo' }] ] = { valid: true };
-          env.responses[ ['storeFile', 'application/json', 'foo',
-              JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo' })] ] = storeFilePromise;
-          env.responses[ ['getFile', 'foo', undefined] ] = getFilePromise;
-
-          env.credentialsStore.set({some: 'conf'}).then(function() {
-            return env.credentialsStore.get(undefined);
+          remoteStorage.irc_credentials.set({some: 'conf'}).then(function() {
+console.log('-2');
+            return env.module.get(undefined);
           }).then(function(res) {
-            test.assertAnd(res, {some: 'conf'});
-            test.assertAnd(env.called, [
-             [ 'validate', { some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo' } ],
-             [ 'storeFile', 'application/json', 'foo', '{"some":"conf","@context":"http://remotestorage.io/spec/modules/foo"}' ],
-             [ 'getFile', 'foo', undefined ]
-            ]);
+console.log('-3');
             test.done();
-          });
-          storeFilePromise.fulfill({});
-          getFilePromise.fulfill({
-            data: JSON.stringify({some: 'conf', '@context': 'http://remotestorage.io/spec/modules/foo' }),
-            mimeType: 'application/json'
           });
         }
       },
