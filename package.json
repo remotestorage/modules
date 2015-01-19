@@ -3,15 +3,14 @@
   "description": "remotestorage modules collection",
   "version": "0.0.1",
   "private": false,
-  "author": "Niklas Cathor <nilclass@riseup.net>",
-  "license": "AGPL",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/remotestorage/modules.git"
   },
   "homepage": "http://github.com/remotestorage/modules",
   "dependencies": {
-    "remotestoragejs": "^0.10.3",
+    "remotestoragejs": "^0.11.0",
     "xmlhttprequest": "*",
     "localStorage": "*",
     "bluebird": "2.x"
