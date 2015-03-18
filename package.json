@@ -10,12 +10,14 @@
   },
   "homepage": "http://github.com/remotestorage/modules",
   "dependencies": {
-    "remotestoragejs": "^0.11.0",
+    "remotestoragejs": "^0.11.2",
     "xmlhttprequest": "*",
     "localStorage": "*",
     "bluebird": "2.x"
   },
   "devDependencies": {
+    "babelify": "^5.0.4",
+    "browserify": "^9.0.3",
     "jaribu": "*",
     "xhr2": "*"
   },

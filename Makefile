@@ -4,8 +4,11 @@ DOC_CONFIG_DIR = ./doc/config
 DOC_CUSTOM_CSS = remotestorage
 DOC_INPUTS     = -i src/ -i doc/pages/
 
-.PHONY: doc
+.PHONY: doc build
 
 doc:
 	mkdir -p $(DOC_DIR) $(DOC_CONFIG_DIR)
 	$(DOC_BIN) $(DOC_INPUTS) -o html $(DOC_DIR) -p $(DOC_CONFIG_DIR) -s Default $(DOC_CUSTOM_CSS)
+
+# build:
+#   ./node_modules/.bin/browserify src/bookmarks.js -t babelify --outfile dist/bookmarks.js
