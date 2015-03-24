@@ -1,6 +1,7 @@
 'use strict';
 
-// Because you can't specify a directory as target for grunt-browserify we have to generate the file configuration at runtime
+// Because you can't specify a directory as target for grunt-browserify
+// we have to generate the file configuration at runtime
 var fs = require('fs');
 var browserifyFileConfig = {};
 fs.readdirSync('src').forEach(function(fileName) {
