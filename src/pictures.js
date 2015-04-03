@@ -147,7 +147,7 @@ RemoteStorage.defineModule('pictures', function(privateClient, publicClient) {
       return this.client.getListing('')
         .then(function(listing) {
           if (listing) {
-            return listing.map(decodeURIComponent);
+            return Object.keys(listing).map(decodeURIComponent);
           } else {
             return [];
           }
