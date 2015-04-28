@@ -1,4 +1,4 @@
-Format: 1.51
+Format: 1.52
 
 
 # You can add a title and sub-title to your menu like this:
@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: Properties, Classes, Files, Variables, Functions, General
+Don't Index: Functions, Classes, Variables, General, Properties, Files
 
 
 # --------------------------------------------------------------------------
@@ -55,36 +55,36 @@ Don't Index: Properties, Classes, Files, Variables, Functions, General
 # --------------------------------------------------------------------------
 
 
-File: Overview  (/home/michiel/other-dev/modules/doc/pages/overview.txt)
+File: Overview  (/home/basti/src/remotestorage/modules/doc/pages/overview.txt)
 
 Group: Modules  {
 
-   File: Apps  (/home/michiel/other-dev/modules/src/apps.js)
-   File: Bookmarks  (/home/michiel/other-dev/modules/src/bookmarks.js)
-   File: Contacts  (/home/michiel/other-dev/modules/src/contacts.js)
-   File: Documents  (/home/michiel/other-dev/modules/src/documents.js)
-   File: Email Credentials  (/home/michiel/other-dev/modules/src/email-credentials.js)
-   File: Facebook  (/home/michiel/other-dev/modules/src/facebook-credentials.js)
-   File: Feeds  (/home/michiel/other-dev/modules/src/feeds.js)
-   File: Fitness  (/home/michiel/other-dev/modules/src/fitness.js)
-   File: IRC Credentials  (/home/michiel/other-dev/modules/src/irc-credentials.js)
-   File: Messages  (/home/michiel/other-dev/modules/src/messages.js)
-   File: PGP  (/home/michiel/other-dev/modules/src/pgp.js)
-   File: Pictures  (/home/michiel/other-dev/modules/src/pictures.js)
-   File: Shares  (/home/michiel/other-dev/modules/src/shares.js)
-   File: Sockethub Credentials  (/home/michiel/other-dev/modules/src/sockethub-credentials.js)
-   File: Twitter  (/home/michiel/other-dev/modules/src/twitter-credentials.js)
+   File: Apps  (/home/basti/src/remotestorage/modules/src/apps.js)
+   File: Bookmarks  (/home/basti/src/remotestorage/modules/src/bookmarks.js)
+   File: Contacts  (/home/basti/src/remotestorage/modules/src/contacts.js)
+   File: Documents  (/home/basti/src/remotestorage/modules/src/documents.js)
+   File: Email Credentials  (/home/basti/src/remotestorage/modules/src/email-credentials.js)
+   File: Facebook  (/home/basti/src/remotestorage/modules/src/facebook-credentials.js)
+   File: Feeds  (/home/basti/src/remotestorage/modules/src/feeds.js)
+   File: Fitness  (/home/basti/src/remotestorage/modules/src/fitness.js)
+   File: IRC Credentials  (/home/basti/src/remotestorage/modules/src/irc-credentials.js)
+   File: Messages  (/home/basti/src/remotestorage/modules/src/messages.js)
+   File: PGP  (/home/basti/src/remotestorage/modules/src/pgp.js)
+   File: Pictures  (/home/basti/src/remotestorage/modules/src/pictures.js)
+   File: Shares  (/home/basti/src/remotestorage/modules/src/shares.js)
+   File: Sockethub Credentials  (/home/basti/src/remotestorage/modules/src/sockethub-credentials.js)
+   File: Twitter  (/home/basti/src/remotestorage/modules/src/twitter-credentials.js)
 
    Group: Utils  {
 
-      File: CredentialsStore  (/home/michiel/other-dev/modules/src/utils/credentialsstore.js)
-      File: PrefixTree  (/home/michiel/other-dev/modules/src/utils/prefixtree.js)
-      File: SyncedMap  (/home/michiel/other-dev/modules/src/utils/syncedmap.js)
-      File: SyncedVar  (/home/michiel/other-dev/modules/src/utils/syncedvar.js)
+      File: CredentialsStore  (/home/basti/src/remotestorage/modules/src/utils/credentialsstore.js)
+      File: PrefixTree  (/home/basti/src/remotestorage/modules/src/utils/prefixtree.js)
+      File: SyncedMap  (/home/basti/src/remotestorage/modules/src/utils/syncedmap.js)
+      File: SyncedVar  (/home/basti/src/remotestorage/modules/src/utils/syncedvar.js)
       }  # Group: Utils
 
-   File: www  (/home/michiel/other-dev/modules/src/www.js)
-   File: XMPP Credentials  (/home/michiel/other-dev/modules/src/xmpp-credentials.js)
+   File: www  (/home/basti/src/remotestorage/modules/src/www.js)
+   File: XMPP Credentials  (/home/basti/src/remotestorage/modules/src/xmpp-credentials.js)
    }  # Group: Modules
 
 Schema Index: List of schemas
@@ -92,5 +92,5 @@ Export Index: List of module functions
 
 
 ##### Do not change or remove these lines. #####
-Data: 1(D3333RuEG3E89R8Go3utRGHzfG/3EufNoG636H9)
-Data: 1(h3333RuEG3E89R8Go3utRGHzfG/3EufNoG63fu93Ip`G6)
+Data: 1(D3333RuEG3Yp6t836H93HGEutG6tuHp`G3EufNoG636H9)
+Data: 1(h3333RuEG3Yp6t836H93HGEutG6tuHp`G3EufNoG63fu93Ip`G6)
