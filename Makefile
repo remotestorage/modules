@@ -13,11 +13,10 @@ help:
 	@echo "all            - build all modules and generate documentation"
 	@echo "build-all      - build all modules"
 	@echo "doc            - generate documentation via NaturalDocs"
-	@echo "clean          - remove all build files"
 
 all: deps build-all doc
 
-.PHONY: help build-all doc clean
+.PHONY: help build-all doc
 
 deps:
 	npm install
@@ -27,10 +26,4 @@ doc:
 	$(DOC_BIN) $(DOC_INPUTS) -o html $(DOC_DIR) -p $(DOC_CONFIG_DIR) -s Default $(DOC_CUSTOM_CSS)
 
 build-all:
-	for file in $(SOURCEDIR)/*.js; do \
-		echo "Compiling $$file"; \
-		./node_modules/.bin/browserify $$file -t babelify --outfile dist/$${file##*/} ; \
-	done
-
-clean:
-	rm -r dist/*
+	grunt build
