@@ -19,15 +19,16 @@ you can ask and discuss anything: [http://community.remotestorage.io](http://com
 Just issue a pull request, and we'll jointly review the code and help each
 other making it ready for master.
 
-### Using the module console
+### Development
 
-This repository contains a module console, which is a NodeJS script to help you debug modules.
+Module source code lives in the `src` directory. You can use ES6 syntax to
+import helper functions and classes, as well as for source code of the module
+itself.
 
-For example to use the "contacts" module, run this:
+There's a Grunt setup for transpiling/building modules. You can watch all
+modules in `src` by running:
 
-```
-scripts/module-console.js contacts
-```
+    grunt watch-src
 
-This will load the given module ("contacts" in this case) and give you a prompt. By default caching is enabled, so you don't need to connect to any remotestorage server.
-The prompt works like any other node prompt, with one important exception: Whenever a command returns a promise, it will wait for the promise to be fulfilled or rejected and then print the result. That makes it a lot easier to test asynchronous code in a trial & error way.
+This will automatically build any changes to a file with the same name in
+`dist`. You can also just build all modules using `grunt build`.
