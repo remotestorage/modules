@@ -1,18 +1,17 @@
 /**
  * File: Bookmarks
  *
- * Sebastian Kippe <basti@kip.pe>
- *
- * Version:    - 0.1.1
+ * Maintainer: - Sebastian Kippe <sebastian@kip.pe>
+ * Version:    - 0.2.0
  *
  * This module stores bookmarks. It is used by https://webmarks.5apps.com/
- *
  */
+
+import md5sum from "./utils/md5sum";
 
 RemoteStorage.defineModule('bookmarks', function (privateClient, publicClient) {
 
   var extend = RemoteStorage.util.extend;
-  var md5sum = RemoteStorage.util.md5sum;
 
   //
   // Types
