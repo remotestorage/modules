@@ -28,7 +28,7 @@ Format: 1.52
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: Variables, Classes, Functions, General, Files, Properties
+Don't Index: Files, Properties, General, Variables, Classes, Functions
 
 
 # --------------------------------------------------------------------------
