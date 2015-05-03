@@ -1,25 +1,25 @@
-1.51
+1.52
 JavaScript
-/home/michiel/other-dev/modules/src/shares.js	1413725547	1	Shares
-/home/michiel/other-dev/modules/src/bookmarks.js	1413725573	1	Bookmarks
-/home/michiel/other-dev/modules/doc/pages/overview.txt	1406890945	1	Overview
-/home/michiel/other-dev/modules/src/utils/syncedmap.js	1406890945	1	SyncedMap
-/home/michiel/other-dev/modules/src/email-credentials.js	1406890945	1	Email Credentials
-/home/michiel/other-dev/modules/src/documents.js	1406890945	1	Documents
-/home/michiel/other-dev/modules/src/xmpp-credentials.js	1413725547	1	XMPP Credentials
-/home/michiel/other-dev/modules/src/fitness.js	1413820242	1	Fitness
-/home/michiel/other-dev/modules/src/irc-credentials.js	1413889011	1	IRC Credentials
-/home/michiel/other-dev/modules/src/apps.js	1413814148	1	Apps
-/home/michiel/other-dev/modules/src/pictures.js	1406890945	1	Pictures
-/home/michiel/other-dev/modules/src/articles.js	1413725547	0	/home/michiel/other-dev/modules/src/articles.js
-/home/michiel/other-dev/modules/src/contacts.js	1413725547	1	Contacts
-/home/michiel/other-dev/modules/src/utils/credentialsstore.js	1413725593	1	CredentialsStore
-/home/michiel/other-dev/modules/src/utils/prefixtree.js	1413725593	1	PrefixTree
-/home/michiel/other-dev/modules/src/feeds.js	1413820242	1	Feeds
-/home/michiel/other-dev/modules/src/www.js	1413814154	1	www
-/home/michiel/other-dev/modules/src/sockethub-credentials.js	1413725547	1	Sockethub Credentials
-/home/michiel/other-dev/modules/src/twitter-credentials.js	1406890945	1	Twitter
-/home/michiel/other-dev/modules/src/pgp.js	1413746182	1	PGP
-/home/michiel/other-dev/modules/src/messages.js	1413892297	1	Messages
-/home/michiel/other-dev/modules/src/utils/syncedvar.js	1406890945	1	SyncedVar
-/home/michiel/other-dev/modules/src/facebook-credentials.js	1406890945	1	Facebook
+/home/basti/src/remotestorage/modules/src/bookmarks.js	1430665221	1	Bookmarks
+/home/basti/src/remotestorage/modules/src/twitter-credentials.js	1430665221	1	Twitter
+/home/basti/src/remotestorage/modules/src/articles.js	1430665221	0	/home/basti/src/remotestorage/modules/src/articles.js
+/home/basti/src/remotestorage/modules/src/xmpp-credentials.js	1430665221	1	XMPP Credentials
+/home/basti/src/remotestorage/modules/src/pictures.js	1430665221	1	Pictures
+/home/basti/src/remotestorage/modules/src/documents.js	1430665221	1	Documents
+/home/basti/src/remotestorage/modules/src/messages.js	1430665221	1	Messages
+/home/basti/src/remotestorage/modules/src/contacts.js	1430665221	1	Contacts
+/home/basti/src/remotestorage/modules/src/fitness.js	1430665221	1	Fitness
+/home/basti/src/remotestorage/modules/src/apps.js	1430665221	1	Apps
+/home/basti/src/remotestorage/modules/src/www.js	1430665221	1	www
+/home/basti/src/remotestorage/modules/src/shares.js	1430665221	1	Shares
+/home/basti/src/remotestorage/modules/src/pgp.js	1430665221	1	PGP
+/home/basti/src/remotestorage/modules/src/utils/syncedvar.js	1430665221	1	SyncedVar
+/home/basti/src/remotestorage/modules/src/utils/syncedmap.js	1430665221	1	SyncedMap
+/home/basti/src/remotestorage/modules/src/facebook-credentials.js	1430665221	1	Facebook
+/home/basti/src/remotestorage/modules/src/utils/prefixtree.js	1430665221	1	PrefixTree
+/home/basti/src/remotestorage/modules/src/overview.txt	1430667709	1	Overview
+/home/basti/src/remotestorage/modules/src/irc-credentials.js	1430665221	1	IRC Credentials
+/home/basti/src/remotestorage/modules/src/email-credentials.js	1430665221	1	Email Credentials
+/home/basti/src/remotestorage/modules/src/feeds.js	1430665221	1	Feeds
+/home/basti/src/remotestorage/modules/src/sockethub-credentials.js	1430665221	1	Sockethub Credentials
+/home/basti/src/remotestorage/modules/src/utils/credentialsstore.js	1430665221	1	CredentialsStore

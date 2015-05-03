@@ -1,4 +1,4 @@
-Format: 1.51
+Format: 1.52
 
 
 # You can add a title and sub-title to your menu like this:
@@ -28,7 +28,7 @@ Format: 1.51
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: Properties, Classes, Files, Variables, Functions, General
+Don't Index: Variables, Classes, Functions, General, Files, Properties
 
 
 # --------------------------------------------------------------------------
@@ -48,49 +48,40 @@ Don't Index: Properties, Classes, Files, Variables, Functions, General
 # time it is run.  When working with groups, just deal with the braces and
 # forget about the indentation and comments.
 # 
-# You can use this file on other computers even if they use different
-# directories.  As long as the command line points to the same source files,
-# Natural Docs will be able to correct the locations automatically.
-# 
 # --------------------------------------------------------------------------
 
 
-File: Overview  (/home/michiel/other-dev/modules/doc/pages/overview.txt)
+File: Overview  (no auto-title, overview.txt)
 
 Group: Modules  {
 
-   File: Apps  (/home/michiel/other-dev/modules/src/apps.js)
-   File: Bookmarks  (/home/michiel/other-dev/modules/src/bookmarks.js)
-   File: Contacts  (/home/michiel/other-dev/modules/src/contacts.js)
-   File: Documents  (/home/michiel/other-dev/modules/src/documents.js)
-   File: Email Credentials  (/home/michiel/other-dev/modules/src/email-credentials.js)
-   File: Facebook  (/home/michiel/other-dev/modules/src/facebook-credentials.js)
-   File: Feeds  (/home/michiel/other-dev/modules/src/feeds.js)
-   File: Fitness  (/home/michiel/other-dev/modules/src/fitness.js)
-   File: IRC Credentials  (/home/michiel/other-dev/modules/src/irc-credentials.js)
-   File: Messages  (/home/michiel/other-dev/modules/src/messages.js)
-   File: PGP  (/home/michiel/other-dev/modules/src/pgp.js)
-   File: Pictures  (/home/michiel/other-dev/modules/src/pictures.js)
-   File: Shares  (/home/michiel/other-dev/modules/src/shares.js)
-   File: Sockethub Credentials  (/home/michiel/other-dev/modules/src/sockethub-credentials.js)
-   File: Twitter  (/home/michiel/other-dev/modules/src/twitter-credentials.js)
+   File: Apps  (apps.js)
+   File: Bookmarks  (bookmarks.js)
+   File: Contacts  (contacts.js)
+   File: Documents  (documents.js)
+   File: Email Credentials  (email-credentials.js)
+   File: Facebook  (facebook-credentials.js)
+   File: Feeds  (feeds.js)
+   File: Fitness  (fitness.js)
+   File: IRC Credentials  (irc-credentials.js)
+   File: Messages  (messages.js)
+   File: PGP  (pgp.js)
+   File: Pictures  (pictures.js)
+   File: Shares  (shares.js)
+   File: Sockethub Credentials  (sockethub-credentials.js)
+   File: Twitter  (twitter-credentials.js)
 
    Group: Utils  {
 
-      File: CredentialsStore  (/home/michiel/other-dev/modules/src/utils/credentialsstore.js)
-      File: PrefixTree  (/home/michiel/other-dev/modules/src/utils/prefixtree.js)
-      File: SyncedMap  (/home/michiel/other-dev/modules/src/utils/syncedmap.js)
-      File: SyncedVar  (/home/michiel/other-dev/modules/src/utils/syncedvar.js)
+      File: CredentialsStore  (utils/credentialsstore.js)
+      File: PrefixTree  (utils/prefixtree.js)
+      File: SyncedMap  (utils/syncedmap.js)
+      File: SyncedVar  (utils/syncedvar.js)
       }  # Group: Utils
 
-   File: www  (/home/michiel/other-dev/modules/src/www.js)
-   File: XMPP Credentials  (/home/michiel/other-dev/modules/src/xmpp-credentials.js)
+   File: www  (www.js)
+   File: XMPP Credentials  (xmpp-credentials.js)
    }  # Group: Modules
 
 Schema Index: List of schemas
 Export Index: List of module functions
-
-
-##### Do not change or remove these lines. #####
-Data: 1(D3333RuEG3E89R8Go3utRGHzfG/3EufNoG636H9)
-Data: 1(h3333RuEG3E89R8Go3utRGHzfG/3EufNoG63fu93Ip`G6)
