@@ -193,7 +193,7 @@ a:active, a:hover {
 
 .ContentPage, .IndexPage, .FramedMenuPage {
   background-color: #DDD;
-  background: #DDD url(http://remotestorage.io/img/cubes.png) repeat;
+  background: #DDD url(https://remotestorage.io/img/cubes.png) repeat;
 }
 
 #Menu {
