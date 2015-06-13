@@ -39,5 +39,3 @@ Documentation via NaturalDocs:
 
 * `make doc` builds the documentation
 * `./publish-docs` builds and publishes to gh-pages
-
-Caveat: after using the publish script, you might need to `npm install` again.
