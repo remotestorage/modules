@@ -1,8 +1,8 @@
 /**
  * File: Contacts
  *
- * Maintainer: Michiel de Jong <michiel@unhosted.org>
- * Version: -    0.2.0
+ * Maintainer: - Michiel de Jong <michiel@unhosted.org>
+ * Version:    - 0.2.0
  *
  */
 if(! RemoteStorage) {

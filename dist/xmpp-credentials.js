@@ -2,8 +2,8 @@
 /**
  * File: XMPP Credentials
  *
- * Maintainer: Nick Jennings <nick@silverbucket.net>
- * Version: -    0.2.0
+ * Maintainer: - Nick Jennings <nick@silverbucket.net>
+ * Version:    - 0.2.0
  *
  */
 "use strict";

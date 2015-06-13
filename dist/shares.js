@@ -3,7 +3,7 @@
  * File: Shares
  *
  * Maintainer: - Sebastian Kippe <sebastian@kip.pe>
- * Version: -    0.3.0
+ * Version:    - 0.3.0
  *
  * Manages sharing of files. All shares are stored with a timestamp prefix.
  * For images, thumbnails are created and stored in a subdirectory.

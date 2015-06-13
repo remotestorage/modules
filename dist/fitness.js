@@ -2,8 +2,7 @@
 /**
  * File: Fitness
  *
- * Nick Jennings <nick@silverbucket.net>
- *
+ * Maintainer: - Nick Jennings <nick@silverbucket.net>
  * Version:    - 0.0.4
  *
  * This module stores fitness related data, such as body measurements,

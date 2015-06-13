@@ -2,10 +2,9 @@
 /**
  * File: Messages
  *
- * Nick Jennings <nick@silverbucket.net>
- * Niklas E. Cathor <nilclass@riseup.net>
- *
- * Version:    - 0.1.0
+ * Maintainer:      - Nick Jennings <nick@silverbucket.net>
+ * Original author: - Niklas E. Cathor <nilclass@riseup.net>
+ * Version:         - 0.1.0
  *
  * This module stores messages and drafts, as well as credentials for
  * all of the various messaging protocols.

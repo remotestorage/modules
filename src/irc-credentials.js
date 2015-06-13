@@ -1,8 +1,8 @@
 /**
  * File: IRC Credentials
  *
- * Maintainer: Nick Jennings <nick@silverbucket.net>
- * Version: -    0.2.0
+ * Maintainer: - Nick Jennings <nick@silverbucket.net>
+ * Version:    - 0.2.0
  *
  */
 RemoteStorage.defineModule('irc-credentials', function(privClient, pubClient) {

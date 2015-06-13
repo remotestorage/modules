@@ -1,8 +1,10 @@
 /**
  * File: www
  *
- * Maintainer: Michiel de Jong <michiel@unhosted.org>
- * Version: -    0.1.0
+ * Maintainer: - Michiel de Jong <michiel@unhosted.org>
+ * Version:    - 0.1.0
+ *
+ * FIXME add description
  *
  */
 RemoteStorage.defineModule('www', function(privClient, pubClient) {

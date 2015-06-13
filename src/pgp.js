@@ -4,7 +4,6 @@
  * Maintainer: - Niklas E. Cathor <nilclass@riseup.net>
  * Version:    - 0.0.0
  *
- *
  * This module can manage public and private PGP keys.
  *
  * As of the writing of this module, I would not recommend putting private PGP keys

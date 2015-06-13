@@ -1,8 +1,8 @@
 /**
  * File: Twitter
  *
- * Maintainer: Michiel de Jong <michiel@unhosted.org>
- * Version: -    0.1.0
+ * Maintainer: - Michiel de Jong <michiel@unhosted.org>
+ * Version:    - 0.1.0
  *
  */
 RemoteStorage.defineModule('twitter', function(privClient, pubClient) {

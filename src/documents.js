@@ -2,7 +2,7 @@
  * File: Documents
  *
  * Maintainer: - Jorin Vogel <hi@jorin.in>
- * Version: -    0.1.3
+ * Version:    - 0.1.3
  *
  * This modue stores lists of documents.
  * A document has the fields title, content and lastEdited.

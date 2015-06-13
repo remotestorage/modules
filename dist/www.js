@@ -2,8 +2,10 @@
 /**
  * File: www
  *
- * Maintainer: Michiel de Jong <michiel@unhosted.org>
- * Version: -    0.1.0
+ * Maintainer: - Michiel de Jong <michiel@unhosted.org>
+ * Version:    - 0.1.0
+ *
+ * FIXME add description
  *
  */
 "use strict";
