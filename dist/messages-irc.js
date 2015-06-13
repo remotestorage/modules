@@ -35,7 +35,7 @@ RemoteStorage.defineModule("messages-irc", function (client, publicClient) {
    *     "messages": [
    *       { "date": "2015-06-05T17:35:28.454Z", "user": "hal8000", "text": "knock knock" },
    *       { "date": "2015-06-05T17:37:42.123Z", "user": "raucao", "text": "who's there?" },
-   *       { "date": "2015-06-05T17:55:01.235Z", "user": "hal8000", "text": "HAL" },
+   *       { "date": "2015-06-05T17:55:01.235Z", "user": "hal8000", "text": "HAL" }
    *     ]
    *   }
    * }
