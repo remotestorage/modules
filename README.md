@@ -32,3 +32,12 @@ modules in `src` by running:
 
 This will automatically build any changes to a file with the same name in
 `dist`. You can also just build all modules using `grunt build`.
+
+### Docs
+
+Documentation via NaturalDocs:
+
+* `make doc` builds the documentation
+* `./publish-docs` builds and publishes to gh-pages
+
+Caveat: after using the publish script, you might need to `npm install` again.
