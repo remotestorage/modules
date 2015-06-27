@@ -12,7 +12,7 @@
   "dependencies": {
     "remotestoragejs": "^0.11.2",
     "xmlhttprequest": "*",
-    "localStorage": "*",
+    "localstorage": "*",
     "bluebird": "2.x"
   },
   "devDependencies": {
@@ -23,9 +23,11 @@
     "grunt-contrib-clean": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
     "jaribu": "*",
-    "xhr2": "*"
+    "xhr2": "*",
+    "prompt": "*"
   },
   "scripts": {
-    "test": "node_modules/.bin/jaribu"
+    "test": "node_modules/.bin/jaribu",
+    "console": "node scripts/module-console.js"
   }
 }

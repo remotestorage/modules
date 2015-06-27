@@ -2,23 +2,17 @@
 
 var moduleName = process.argv[2];
 
-if(! moduleName) {
+if (!moduleName) {
   console.log("Usage: " + process.argv[1] + " <module-name>");
   process.exit(127);
 }
 
-try {
-  global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-  global.localStorage = require('localStorage');
-} catch(e) {
-  console.log("You need to install 'xmlhttprequest' and 'localStorage' for this to work.");
-  console.log("Run this:\n  npm install xmlhttprequest localStorage");
-  process.exit(127);
-}
+global.XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+global.localStorage = require('localStorage');
 
-var RemoteStorage = require('./lib/remotestorage-node');
+var RemoteStorage = require('remotestoragejs');
 
-global.remoteStorage = new RemoteStorage();
+global.remoteStorage = new RemoteStorage()
 
 try {
   require('../src/' + moduleName);
@@ -37,7 +31,7 @@ var util = require('util');
 
 console.log("Module loaded. You can use 'remoteStorage." + moduleName + "' or just '" + moduleName + "' to access it.");
 
-// helper to distinguish sync / async results in 'writer' function
+// Helper to distinguish sync / async results in 'writer' function
 var AsyncResult = function(result, failed) {
   this.result = result;
   this.failed = failed;
@@ -52,7 +46,7 @@ repl.start({
     } catch(e) {
       return callback(e);
     }
-    if(result && typeof(result) === 'object' && typeof(result.then) === 'function') {
+    if (result && typeof(result) === 'object' && typeof(result.then) === 'function') {
       result.then(function(res) {
         callback(null, new AsyncResult(res, false));
       }, function(res) {
@@ -64,7 +58,7 @@ repl.start({
   },
 
   writer: function(object) {
-    if(typeof(object) === 'object' && object instanceof AsyncResult) {
+    if (typeof(object) === 'object' && object instanceof AsyncResult) {
       if(object.failed) {
         return 'Promise failed with: ' + util.inspect(object.result) + ('stack' in object.result ? object.result.stack : '');
       } else {

@@ -33,6 +33,18 @@ modules in `src` by running:
 This will automatically build any changes to a file with the same name in
 `dist`. You can also just build all modules using `grunt build`.
 
+### Interactive Module Console
+
+You can run an interactive node.js console with remoteStorage.js and a module
+of your choosing being loaded using the following command:
+
+    npm run console [module name]
+
+In order to connect a remote storage within the console, you can call
+`configure` on the remote directly with the storage info, like so:
+
+    remoteStorage.remote.configure({userAddress: 'basti@5apps.com', token: '123456789abcdefg', href: 'https://storage.5apps.com/basti', storageType: 'draft-dejong-remotestorage-02'})
+
 ### Docs
 
 Documentation via NaturalDocs:
