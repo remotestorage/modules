@@ -26,7 +26,6 @@ remoteStorage.caching.enable('/');
 
 global[moduleName] = remoteStorage[moduleName];
 
-var repl = require('repl');
 var util = require('util');
 
 console.log("Module loaded. You can use 'remoteStorage." + moduleName + "' or just '" + moduleName + "' to access it.");
@@ -37,7 +36,7 @@ var AsyncResult = function(result, failed) {
   this.failed = failed;
 }
 
-repl.start({
+var repl = require('repl').start({
 
   eval: function(cmd, context, filename, callback) {
     var result;
@@ -70,3 +69,5 @@ repl.start({
   }
 
 });
+
+require('repl.history')(repl, process.env.HOME + '/.node_history');
