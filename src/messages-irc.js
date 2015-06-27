@@ -259,6 +259,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         } else {
           console.log('Creating new archive document');
           var archive = self._buildArchiveObject();
+          archive.today.messages.push(message);
 
           self._updatePreviousArchive().then(function(previous) {
             if (typeof previous === 'object') {
@@ -318,7 +319,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     _updatePreviousArchive: function() {
       var pending = Promise.defer();
       // TODO find and update previous archive
-      pending.resolve({today: {'@id': '2015/06/23'}});
+      // pending.resolve({today: {'@id': '2015/06/23'}});
+      pending.resolve('nope');
       return pending.promise;
     },
 
