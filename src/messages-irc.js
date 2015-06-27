@@ -212,11 +212,23 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     this.dateId = this.parsedDate.year+'/'+this.parsedDate.month+'/'+this.parsedDate.day
 
     /**
-     * Property: messages
+     * Property: path
      *
-     * An array holding all messages of the day
+     * Document path of the archive file
      */
-    this.messages = [];
+    if (this.channelName.match(/^#/)) {
+      var channelName = this.channelName.replace(/#/,'');
+      this.path = this.network.name+"/channels/"+channelName+"/"+this.dateId;
+    } else {
+      this.path = this.network.name+"/users/"+this.channelName+"/"+this.dateId;
+    }
+
+    /**
+     * Property: client
+     *
+     * Public or private BaseClient, depending on isPublic
+     */
+    this.client = this.isPublic ? publicClient : privateClient;
   };
 
   DailyArchive.prototype = {
@@ -230,7 +242,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      *   type      - Type of message (one of text, join, leave)
      */
     addMessage: function addMessage(obj) {
-      console.log("addMessage", obj);
+      // TODO addMessages (in bulk)
+      var self = this;
       var message = {
         "timestamp": obj.timestamp,
         "from": obj.from,
@@ -238,8 +251,34 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         "type": obj.type || 'text'
       }
 
-      this.messages.push(message);
-      this.sync();
+      this.client.getObject(this.path).then(function(archive){
+        if (typeof archive === 'object') {
+          console.log('Updating archive document', archive);
+          archive.today.messages.push(message);
+          self._sync(archive);
+        } else {
+          console.log('Creating new archive document');
+          var archive = self._buildArchiveObject();
+
+          self._updatePreviousArchive().then(function(previous) {
+            if (typeof previous === 'object') {
+              archive.today.previous = previous.today['@id'];
+            }
+            self._sync(archive);
+          });
+        }
+      }, function(error) {
+        // our connection to the storage is not healthy it would seem
+      });
+    },
+
+    /*
+     * Method: remove
+     *
+     * Deletes the entire archive document from storage
+     */
+    remove: function() {
+      return this.client.remove(this.path);
     },
 
     /*
@@ -247,11 +286,16 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      *
      * Builds the object to be stored in remote storage
      */
-    buildArchiveObject: function() {
-      var channelNameWithoutHash = this.channelName.replace(/^#/, '');
-
+    _buildArchiveObject: function() {
+      var id;
+      if (this.channelName.match(/^#/)) {
+        var channelName = this.channelName.replace(/#/,'');
+        id = "messages-irc/"+this.network.name+"/channels/"+channelName+"/";
+      } else {
+        id = "messages-irc/"+this.network.name+"/users/"+channelName+"/";
+      }
       return {
-        "@id": "messages-irc/"+this.network.name+"/"+channelNameWithoutHash+"/",
+        "@id": id,
         "@type": "ChatChannel",
         "name": this.channelName,
         "ircURI": this.network.ircURI+"/"+this.channelName,
@@ -261,24 +305,32 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
           "messageType": "InstantMessage",
           // "previous": null,
           // "next": null,
-          "messages": this.messages
+          "messages": []
         }
       };
     },
 
     /*
+     * Method: _updatePreviousArchive
+     *
+     * Finds the last archive document and updates its today.next value
+     */
+    _updatePreviousArchive: function() {
+      var pending = Promise.defer();
+      // TODO find and update previous archive
+      pending.resolve({today: {'@id': '2015/06/23'}});
+      return pending.promise;
+    },
+
+    /*
      * Method: sync
      *
-     * Find or create archive file, update it, and save it to the storage
+     * Write archive document
      */
-    sync: function() {
-      var client = this.isPublic ? publicClient : privateClient;
-      var path = this.network.name+"/"+this.channelName.replace(/^#/,'')+"/"+this.dateId;
-
-      var obj = this.buildArchiveObject();
+    _sync: function(obj) {
       console.log('Writing archive object', obj);
 
-      client.storeObject('daily-archive', path, obj).then(function(){
+      this.client.storeObject('daily-archive', this.path, obj).then(function(){
         console.log('Archive written to remote storage');
       },function(error){
         console.log('Error trying to store object', error);
@@ -298,7 +350,19 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       month: pad( date.getUTCMonth() + 1 ),
       day:   pad( date.getUTCDate() )
     };
-  }
+  };
+
+  // TODO move to module
+  var arrayUnique = function(array) {
+    var a = array.concat();
+    for(var i=0; i<a.length; ++i) {
+      for(var j=i+1; j<a.length; ++j) {
+        if(a[i] === a[j])
+          a.splice(j--, 1);
+      }
+    }
+    return a;
+  };
 
   var exports = {
     DailyArchive: DailyArchive,
