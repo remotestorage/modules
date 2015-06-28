@@ -10,10 +10,10 @@
   },
   "homepage": "http://github.com/remotestorage/modules",
   "dependencies": {
-    "remotestoragejs": "^0.11.2",
-    "xmlhttprequest": "*",
-    "localstorage": "*",
-    "bluebird": "2.x"
+    "bluebird": "2.x",
+    "localStorage": "^1.0.3",
+    "remotestoragejs": "/home/basti/src/remotestorage/remotestorage.js/",
+    "xmlhttprequest": "*"
   },
   "devDependencies": {
     "babelify": "^5.0.4",

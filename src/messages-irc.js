@@ -253,11 +253,11 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
 
       this.client.getObject(this.path).then(function(archive){
         if (typeof archive === 'object') {
-          console.log('Updating archive document', archive);
+          RemoteStorage.log('[messages-irc] Updating archive document', archive);
           archive.today.messages.push(message);
           self._sync(archive);
         } else {
-          console.log('Creating new archive document');
+          RemoteStorage.log('[messages-irc] Creating new archive document');
           var archive = self._buildArchiveObject();
           archive.today.messages.push(message);
 
@@ -330,12 +330,12 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      * Write archive document
      */
     _sync: function(obj) {
-      console.log('Writing archive object', obj);
+      RemoteStorage.log('[messages-irc] Writing archive object', obj);
 
       this.client.storeObject('daily-archive', this.path, obj).then(function(){
-        console.log('Archive written to remote storage');
+        RemoteStorage.log('[messages-irc] Archive written to remote storage');
       },function(error){
-        console.log('Error trying to store object', error);
+        RemoteStorage.log('[messages-irc] Error trying to store object', error);
       });
     }
   };
