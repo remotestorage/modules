@@ -2,7 +2,7 @@
  * File: Messages (IRC)
  *
  * Maintainer:      - Sebastian Kippe <sebastian@kip.pe>
- * Version:         - 0.2.0
+ * Version:         - 0.3.0
  *
  * This module stores IRC messages in daily archive files.
  */
