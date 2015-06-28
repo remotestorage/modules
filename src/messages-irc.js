@@ -242,6 +242,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      *   type      - Type of message (one of text, join, leave, action)
      */
     addMessage: function addMessage(message) {
+      if (this.isPublic && !this.channelName.match(/^#/)) { return false; }
+
       var self = this;
       message.type = message.type || 'text';
 
@@ -268,6 +270,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      *                old one. Defaults to false.
      */
     addMessages: function addMessage(messages, overwrite) {
+      if (this.isPublic && !this.channelName.match(/^#/)) { return false; }
+
       var self = this;
       overwrite = overwrite || false;
 
