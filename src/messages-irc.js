@@ -24,7 +24,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
    * (start code)
    * {
    *   "@context": "https://kosmos.org/ns/v1",
-   *   "@id": "messages/irc/freenode/kosmos/",
+   *   "@id": "messages/irc/freenode/channels/kosmos/",
    *   "@type": "ChatChannel",
    *   "name": "#kosmos",
    *   "ircURI": "irc://irc.freenode.net/#kosmos",
