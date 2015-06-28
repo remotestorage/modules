@@ -114,7 +114,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
                 "enum": [
                   "text",
                   "join",
-                  "leave"
+                  "leave",
+                  "action"
                 ]
               }
             }
