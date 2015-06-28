@@ -1,6 +1,6 @@
 {
-  "name": "remotestorage-modules",
-  "description": "remotestorage modules collection",
+  "name": "remotestoragejs-modules",
+  "description": "remoteStorage.js data modules",
   "version": "0.1.0",
   "private": false,
   "license": "MIT",
