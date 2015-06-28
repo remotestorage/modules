@@ -245,17 +245,14 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     addMessage: function addMessage(message) {
       if (this.isPublic && !this.channelName.match(/^#/)) { return false; }
 
-      var self = this;
       message.type = message.type || 'text';
 
-      self.client.getObject(self.path).then(function(archive) {
+      return this.client.getObject(this.path).then((archive) => {
         if (typeof archive === 'object') {
-          self._updateDocument(archive, message);
+          this._updateDocument(archive, message);
         } else {
-          self._createDocument(message);
+          this._createDocument(message);
         }
-      }, function(error) {
-        // our connection to the storage is not healthy it would seem
       });
     },
 
@@ -273,7 +270,6 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     addMessages: function addMessage(messages, overwrite) {
       if (this.isPublic && !this.channelName.match(/^#/)) { return false; }
 
-      var self = this;
       overwrite = overwrite || false;
 
       messages.forEach(function(message) {
@@ -281,16 +277,14 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       });
 
       if (overwrite) {
-        self._createDocument(messages);
+        return this._createDocument(messages);
       } else {
-        self.client.getObject(this.path).then(function(archive) {
+        return this.client.getObject(this.path).then((archive) => {
           if (typeof archive === 'object') {
-            self._updateDocument(archive, messages);
+            return this._updateDocument(archive, messages);
           } else {
-            self._createDocument(messages);
+            return this._createDocument(messages);
           }
-        }, function(error) {
-          // our connection to the storage is not healthy it would seem
         });
       }
     },
@@ -320,7 +314,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         archive.today.messages.push(messages);
       }
 
-      this._sync(archive);
+      return this._sync(archive);
     },
 
     /*
@@ -330,22 +324,21 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      */
     _createDocument: function(messages) {
       RemoteStorage.log('[messages-irc] Creating new archive document');
-      var self = this;
-      var archive = self._buildArchiveObject();
+      let archive = this._buildArchiveObject();
 
       if (Array.isArray(messages)) {
-        messages.forEach(function(message) {
+        messages.forEach((message) => {
           archive.today.messages.push(message);
         });
       } else {
         archive.today.messages.push(messages);
       }
 
-      self._updatePreviousArchive().then(function(previous) {
+      return this._updatePreviousArchive().then((previous) => {
         if (typeof previous === 'object') {
           archive.today.previous = previous.today['@id'];
         }
-        self._sync(archive);
+        return this._sync(archive);
       });
     },
 
@@ -371,8 +364,6 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
           "@id": this.dateId,
           "@type": "ChatLog",
           "messageType": "InstantMessage",
-          // "previous": null,
-          // "next": null,
           "messages": []
         }
       };
@@ -381,14 +372,50 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     /*
      * Method: _updatePreviousArchive
      *
-     * Finds the last archive document and updates its today.next value
+     * Finds the previous archive document and updates its today.next value
      */
     _updatePreviousArchive: function() {
-      var pending = Promise.defer();
-      // TODO find and update previous archive
-      // pending.resolve({today: {'@id': '2015/06/23'}});
-      pending.resolve('nope');
-      return pending.promise;
+      return this._findPreviousArchive().then((archive) => {
+        archive.today.next = this.dateId;
+        let path = this.path.substring(0, this.path.length-this.dateId.length)+archive.today['@id'];
+
+        return this.client.storeObject('daily-archive', path, archive).then(() => {
+          RemoteStorage.log('[messages-irc] Previous archive written to remote storage');
+          return archive;
+        });
+      });
+    },
+
+    /*
+     * Method: _findPreviousArchive
+     *
+     * Returns the previous archive document
+     */
+    _findPreviousArchive: function() {
+      let previousDay;
+
+      const monthPath = this.path.substring(0, this.path.length-2);
+
+      return this.client.getListing(monthPath).then((listing) => {
+        let days = Object.keys(listing);
+
+        if (days.length > 0) {
+          days = days.map((i) => parseInt(i)).map((i) => {
+            return (i < parseInt(this.parsedDate.day)) ? i : null;
+          }).filter(function(i){ return i != null });
+
+          if (days.length > 0) {
+            let day = Math.max(...days).toString();
+            if (day.length === 1) { day = '0'+day; }
+
+            return this.client.getObject(monthPath+day);
+          } else {
+            // check earlier month
+          }
+        } else {
+          // check earlier month
+        }
+      });
     },
 
     /*
@@ -399,7 +426,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     _sync: function(obj) {
       RemoteStorage.log('[messages-irc] Writing archive object', obj);
 
-      this.client.storeObject('daily-archive', this.path, obj).then(function(){
+      return this.client.storeObject('daily-archive', this.path, obj).then(function(){
         RemoteStorage.log('[messages-irc] Archive written to remote storage');
       },function(error){
         RemoteStorage.log('[messages-irc] Error trying to store object', error);
@@ -419,18 +446,6 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       month: pad( date.getUTCMonth() + 1 ),
       day:   pad( date.getUTCDate() )
     };
-  };
-
-  // TODO move to module
-  var arrayUnique = function(array) {
-    var a = array.concat();
-    for(var i=0; i<a.length; ++i) {
-      for(var j=i+1; j<a.length; ++j) {
-        if(a[i] === a[j])
-          a.splice(j--, 1);
-      }
-    }
-    return a;
   };
 
   var exports = {
