@@ -1,18 +1,18 @@
 {
   "name": "remotestorage-modules",
   "description": "remotestorage modules collection",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": false,
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git://github.com/remotestorage/modules.git"
   },
-  "homepage": "http://github.com/remotestorage/modules",
+  "homepage": "http://remotestorage.github.io/modules/",
   "dependencies": {
     "bluebird": "2.x",
     "localStorage": "^1.0.3",
-    "remotestoragejs": "/home/basti/src/remotestorage/remotestorage.js/",
+    "remotestoragejs": "remotestorage/remotestorage.js#eafe8ce4e975479c511c7685b1c9a70fcef0bebe",
     "xmlhttprequest": "*"
   },
   "devDependencies": {
