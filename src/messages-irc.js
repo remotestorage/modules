@@ -235,42 +235,59 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     /*
      * Method: addMessage
      *
-     * Parameters:
+     * Parameters (object):
      *   timestamp - Timestamp of the message
      *   from      - The sender of the message
      *   text      - The message itself
-     *   type      - Type of message (one of text, join, leave)
+     *   type      - Type of message (one of text, join, leave, action)
      */
-    addMessage: function addMessage(obj) {
-      // TODO addMessages (in bulk)
+    addMessage: function addMessage(message) {
       var self = this;
-      var message = {
-        "timestamp": obj.timestamp,
-        "from": obj.from,
-        "text": obj.text || '',
-        "type": obj.type || 'text'
-      }
+      message.type = message.type || 'text';
 
-      this.client.getObject(this.path).then(function(archive){
+      self.client.getObject(self.path).then(function(archive) {
         if (typeof archive === 'object') {
-          RemoteStorage.log('[messages-irc] Updating archive document', archive);
-          archive.today.messages.push(message);
-          self._sync(archive);
+          self._updateDocument(archive, message);
         } else {
-          RemoteStorage.log('[messages-irc] Creating new archive document');
-          var archive = self._buildArchiveObject();
-          archive.today.messages.push(message);
-
-          self._updatePreviousArchive().then(function(previous) {
-            if (typeof previous === 'object') {
-              archive.today.previous = previous.today['@id'];
-            }
-            self._sync(archive);
-          });
+          self._createDocument(message);
         }
       }, function(error) {
         // our connection to the storage is not healthy it would seem
       });
+    },
+
+    /*
+     * Method: addMessages
+     *
+     * Like <addMessage>, but for multiple messages at once. Useful for bulk
+     * imports of messages.
+     *
+     * Parameters:
+     *   messages   - Array of message objects (see params for addMessage)
+     *   overwrite  - If true, creates a new archive file and overwrites the
+     *                old one. Defaults to false.
+     */
+    addMessages: function addMessage(messages, overwrite) {
+      var self = this;
+      overwrite = overwrite || false;
+
+      messages.forEach(function(message) {
+        message.type = message.type || 'text';
+      });
+
+      if (overwrite) {
+        self._createDocument(messages);
+      } else {
+        self.client.getObject(this.path).then(function(archive) {
+          if (typeof archive === 'object') {
+            self._updateDocument(archive, messages);
+          } else {
+            self._createDocument(messages);
+          }
+        }, function(error) {
+          // our connection to the storage is not healthy it would seem
+        });
+      }
     },
 
     /*
@@ -283,7 +300,52 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     },
 
     /*
-     * Method: buildArchiveObject
+     * Method: _updateDocument
+     *
+     * Updates and writes an existing archive document
+     */
+    _updateDocument: function(archive, messages) {
+      RemoteStorage.log('[messages-irc] Updating archive document', archive);
+
+      if (Array.isArray(messages)) {
+        messages.forEach(function(message) {
+          archive.today.messages.push(message);
+        });
+      } else {
+        archive.today.messages.push(messages);
+      }
+
+      this._sync(archive);
+    },
+
+    /*
+     * Method: _createDocument
+     *
+     * Creates and writes a new archive document
+     */
+    _createDocument: function(messages) {
+      RemoteStorage.log('[messages-irc] Creating new archive document');
+      var self = this;
+      var archive = self._buildArchiveObject();
+
+      if (Array.isArray(messages)) {
+        messages.forEach(function(message) {
+          archive.today.messages.push(message);
+        });
+      } else {
+        archive.today.messages.push(messages);
+      }
+
+      self._updatePreviousArchive().then(function(previous) {
+        if (typeof previous === 'object') {
+          archive.today.previous = previous.today['@id'];
+        }
+        self._sync(archive);
+      });
+    },
+
+    /*
+     * Method: _buildArchiveObject
      *
      * Builds the object to be stored in remote storage
      */
@@ -325,7 +387,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     },
 
     /*
-     * Method: sync
+     * Method: _sync
      *
      * Write archive document
      */
