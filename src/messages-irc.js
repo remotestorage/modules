@@ -27,7 +27,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
    *   "@id": "messages/irc/freenode/channels/kosmos/",
    *   "@type": "ChatChannel",
    *   "name": "#kosmos",
-   *   "ircURI": "irc://irc.freenode.net/#kosmos",
+   *   "ircURI": "irc://irc.freenode.net/kosmos",
    *   "today":  {
    *     "@id": "2015/01/01",
    *     "@type": "ChatLog",
@@ -299,7 +299,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         "@id": id,
         "@type": "ChatChannel",
         "name": this.channelName,
-        "ircURI": this.network.ircURI+"/"+this.channelName,
+        "ircURI": this.network.ircURI+"/"+this.channelName.replace(/#/,''),
         "today": {
           "@id": this.dateId,
           "@type": "ChatLog",
