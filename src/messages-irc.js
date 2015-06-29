@@ -376,13 +376,17 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      */
     _updatePreviousArchive: function() {
       return this._findPreviousArchive().then((archive) => {
-        archive.today.next = this.dateId;
-        let path = this.path.substring(0, this.path.length-this.dateId.length)+archive.today['@id'];
+        if (typeof archive === 'object' && archive.today) {
+          archive.today.next = this.dateId;
+          let path = this.path.substring(0, this.path.length-this.dateId.length)+archive.today['@id'];
 
-        return this.client.storeObject('daily-archive', path, archive).then(() => {
-          RemoteStorage.log('[messages-irc] Previous archive written to remote storage');
-          return archive;
-        });
+          return this.client.storeObject('daily-archive', path, archive).then(() => {
+            RemoteStorage.log('[messages-irc] Previous archive written to remote storage');
+            return archive;
+          });
+        } else {
+          return false;
+        }
       });
     },
 
@@ -392,29 +396,61 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      * Returns the previous archive document
      */
     _findPreviousArchive: function() {
-      let previousDay;
-
       const monthPath = this.path.substring(0, this.path.length-2);
+      const yearPath = this.path.substring(0, this.path.length-5);
+      const basePath = this.path.substring(0, this.path.length-10);
 
       return this.client.getListing(monthPath).then((listing) => {
-        let days = Object.keys(listing);
+        let days = Object.keys(listing).map((i) => parseInt(i)).map((i) => {
+          return (i < parseInt(this.parsedDate.day)) ? i : null;
+        }).filter(function(i){ return i != null });
 
         if (days.length > 0) {
-          days = days.map((i) => parseInt(i)).map((i) => {
-            return (i < parseInt(this.parsedDate.day)) ? i : null;
+          let day = pad(Math.max(...days).toString());
+          return this.client.getObject(monthPath+day);
+        }
+
+        // Find last day in previous month
+        return this.client.getListing(yearPath).then((listing) => {
+          let months = Object.keys(listing).map((i) => parseInt(i.substr(0,2))).map((i) => {
+            return (i < parseInt(this.parsedDate.month)) ? i : null;
           }).filter(function(i){ return i != null });
 
-          if (days.length > 0) {
-            let day = Math.max(...days).toString();
-            if (day.length === 1) { day = '0'+day; }
+          if (months.length > 0) {
+            let month = pad(Math.max(...months).toString());
 
-            return this.client.getObject(monthPath+day);
+            return this.client.getListing(yearPath+month+'/').then((listing) => {
+              let days = Object.keys(listing).map((i) => parseInt(i));
+              let day = pad(Math.max(...days).toString());
+              return this.client.getObject(yearPath+month+'/'+day);
+            });
           } else {
-            // check earlier month
+            // Find last month and day in previous year
+            return this.client.getListing(basePath).then((listing) => {
+
+              let years = Object.keys(listing).map((i) => parseInt(i.substr(0,4))).map((i) => {
+                return (i < parseInt(this.parsedDate.year)) ? i : null;
+              }).filter(function(i){ return i != null });
+
+              if (years.length > 0) {
+                let year = Math.max(...years).toString();
+
+                return this.client.getListing(basePath+year+'/').then((listing) => {
+                  let months = Object.keys(listing).map((i) => parseInt(i.substr(0,2)));
+                  let month = pad(Math.max(...months).toString());
+
+                  return this.client.getListing(basePath+year+'/'+month+'/').then((listing) => {
+                    let days = Object.keys(listing).map((i) => parseInt(i));
+                    let day = pad(Math.max(...days).toString());
+                    return this.client.getObject(basePath+year+'/'+month+'/'+day);
+                  });
+                });
+              } else {
+                return false;
+              }
+            });
           }
-        } else {
-          // check earlier month
-        }
+        });
       });
     },
 
@@ -434,13 +470,13 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     }
   };
 
-  var parseDate = function(date) {
-    var pad = function(num) {
-      num = String(num);
-      if (num.length === 1) { num = "0" + num; }
-      return num;
-    };
+  var pad = function(num) {
+    num = String(num);
+    if (num.length === 1) { num = "0" + num; }
+    return num;
+  };
 
+  var parseDate = function(date) {
     return {
       year:  date.getUTCFullYear(),
       month: pad( date.getUTCMonth() + 1 ),
