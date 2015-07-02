@@ -381,10 +381,11 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
           let path = this.path.substring(0, this.path.length-this.dateId.length)+archive.today['@id'];
 
           return this.client.storeObject('daily-archive', path, archive).then(() => {
-            RemoteStorage.log('[messages-irc] Previous archive written to remote storage');
+            RemoteStorage.log('[messages-irc] Previous archive written to remote storage', path, archive);
             return archive;
           });
         } else {
+          RemoteStorage.log('[messages-irc] Previous archive not found');
           return false;
         }
       });
