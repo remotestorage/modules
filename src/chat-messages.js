@@ -1,10 +1,10 @@
 /**
- * File: Messages (IRC)
+ * File: Chat Messages
  *
  * Maintainer:      - Sebastian Kippe <sebastian@kip.pe>
  * Version:         - 0.3.0
  *
- * This module stores IRC messages in daily archive files.
+ * This module stores chat messages in daily archive files.
  */
 
 var isNode = new Function("try {return this===global;}catch(e){return false;}");
