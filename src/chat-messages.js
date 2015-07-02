@@ -2,7 +2,7 @@
  * File: Chat Messages
  *
  * Maintainer:      - Sebastian Kippe <sebastian@kip.pe>
- * Version:         - 0.3.0
+ * Version:         - 0.5.0
  *
  * This module stores chat messages in daily archive files.
  */
@@ -140,6 +140,10 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
    *   channelName - Name of room/channel
    *   date        - Date of archive day
    *   isPublic    - Store logs in public folder (defaults to false)
+   *   previous    - Date of previous log file as YYYY/MM/DD;
+   *                 looked up automatically when not given
+   *   next        - Date of next log file as YYYY/MM/DD;
+   *                 looked up automatically when not given
    *
    * Example:
    *
@@ -249,6 +253,20 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      * Public or private BaseClient, depending on isPublic
      */
     this.client = this.isPublic ? publicClient : privateClient;
+
+    /**
+     * Property: previous
+     *
+     * Date of previous log file as YYYY/MM/DD
+     */
+    this.previous = options.previous;
+
+    /**
+     * Property: next
+     *
+     * Date of next log file as YYYY/MM/DD
+     */
+    this.next = options.next;
   };
 
   DailyArchive.prototype = {
@@ -353,12 +371,21 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
         archive.today.messages.push(messages);
       }
 
-      return this._updatePreviousArchive().then((previous) => {
-        if (typeof previous === 'object') {
-          archive.today.previous = previous.today['@id'];
-        }
+      if (this.previous || this.next) {
+        // The app is handling previous/next keys itself
+        // That includes setting 'next' in the previous log file
+        archive.today.previous = this.previous;
+        archive.today.next = this.next;
         return this._sync(archive);
-      });
+      } else {
+        // Find and update previous archive, set 'previous' on this one
+        return this._updatePreviousArchive().then((previous) => {
+          if (typeof previous === 'object') {
+            archive.today.previous = previous.today['@id'];
+          }
+          return this._sync(archive);
+        });
+      }
     },
 
     /*
