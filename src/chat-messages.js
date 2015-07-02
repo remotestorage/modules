@@ -374,8 +374,8 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
       if (this.previous || this.next) {
         // The app is handling previous/next keys itself
         // That includes setting 'next' in the previous log file
-        archive.today.previous = this.previous;
-        archive.today.next = this.next;
+        if (this.previous) { archive.today.previous = this.previous };
+        if (this.next)     { archive.today.next = this.next };
         return this._sync(archive);
       } else {
         // Find and update previous archive, set 'previous' on this one
