@@ -7,10 +7,9 @@
  * This module stores IRC messages in daily archive files.
  */
 
-// TODO only load in node.js
-// if (isNodeJs) {
-RemoteStorage = require("remotestoragejs");
-// }
+if (typeof exports !== 'undefined' && this.exports !== exports) {
+  var RemoteStorage = require("remotestoragejs");
+}
 
 RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient) {
 
@@ -124,7 +123,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       }
     },
     "required": []
-  }
+  };
 
   privateClient.declareType("daily-archive", "https://kosmos.org/ns/v1", archiveSchema);
   publicClient.declareType("daily-archive", "https://kosmos.org/ns/v1", archiveSchema);
@@ -210,7 +209,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      *
      * Date string in the form of YYYY/MM/DD
      */
-    this.dateId = this.parsedDate.year+'/'+this.parsedDate.month+'/'+this.parsedDate.day
+    this.dateId = this.parsedDate.year+'/'+this.parsedDate.month+'/'+this.parsedDate.day;
 
     /**
      * Property: path
@@ -353,7 +352,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         var channelName = this.channelName.replace(/#/,'');
         id = "messages-irc/"+this.network.name+"/channels/"+channelName+"/";
       } else {
-        id = "messages-irc/"+this.network.name+"/users/"+channelName+"/";
+        id = "messages-irc/"+this.network.name+"/users/"+this.channelName+"/";
       }
       return {
         "@id": id,
@@ -404,7 +403,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       return this.client.getListing(monthPath).then((listing) => {
         let days = Object.keys(listing).map((i) => parseInt(i)).map((i) => {
           return (i < parseInt(this.parsedDate.day)) ? i : null;
-        }).filter(function(i){ return i != null });
+        }).filter(function(i){ return i != null;  });
 
         if (days.length > 0) {
           let day = pad(Math.max(...days).toString());
@@ -415,7 +414,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         return this.client.getListing(yearPath).then((listing) => {
           let months = Object.keys(listing).map((i) => parseInt(i.substr(0,2))).map((i) => {
             return (i < parseInt(this.parsedDate.month)) ? i : null;
-          }).filter(function(i){ return i != null });
+          }).filter(function(i){ return i != null; });
 
           if (months.length > 0) {
             let month = pad(Math.max(...months).toString());
@@ -431,7 +430,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
 
               let years = Object.keys(listing).map((i) => parseInt(i.substr(0,4))).map((i) => {
                 return (i < parseInt(this.parsedDate.year)) ? i : null;
-              }).filter(function(i){ return i != null });
+              }).filter(function(i){ return i != null; });
 
               if (years.length > 0) {
                 let year = Math.max(...years).toString();
