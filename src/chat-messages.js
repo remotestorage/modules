@@ -7,23 +7,22 @@
  * This module stores IRC messages in daily archive files.
  */
 
-if (typeof exports !== 'undefined' && this.exports !== exports) {
-  var RemoteStorage = require("remotestoragejs");
-}
+var isNode = new Function("try {return this===global;}catch(e){return false;}");
+if (isNode) { var RemoteStorage = require("remotestoragejs"); }
 
-RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient) {
+RemoteStorage.defineModule("chat-messages", function (privateClient, publicClient) {
 
   /**
-   * Schema: messages-irc/daily
+   * Schema: chat-messages/daily
    *
-   * Represents one day of IRC messages (in UTC)
+   * Represents one day of chat messages
    *
    * Example:
    *
    * (start code)
    * {
    *   "@context": "https://kosmos.org/ns/v1",
-   *   "@id": "messages/irc/freenode/channels/kosmos/",
+   *   "@id": "chat-messages/irc/freenode/channels/kosmos/",
    *   "@type": "ChatChannel",
    *   "name": "#kosmos",
    *   "ircURI": "irc://irc.freenode.net/kosmos",
@@ -53,7 +52,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       },
       "@id": {
         "type": "string",
-        "default": "messages-irc/freenode/kosmos/"
+        "required": true
       },
       "@type": {
         "type": "string",
@@ -61,7 +60,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         "enum": ["ChatChannel"]
       },
       "name": {
-        "type": "string"
+        "type": "string",
+        "required": true
       },
       "ircURI": {
         "type": "string",
@@ -72,7 +72,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         "properties": {
           "@id": {
             "type": "string",
-            "pattern": "^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$"
+            "pattern": "^[0-9]{4}\/[0-9]{2}\/[0-9]{2}$",
+            "required": true
           },
           "@type": {
             "type": "string",
@@ -95,6 +96,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
           "messages": {
             "type": "array",
             "uniqueItems": true,
+            "required": true,
             "items": {
               "type": "object",
               "properties": {
@@ -150,10 +152,10 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     if (typeof options !== "object") {
       throw "options must be an object";
     }
-    if (typeof options.network !== "object" ||
-        typeof options.network.name !== "string" ||
-        typeof options.network.ircURI !== "string") {
-      throw "network must be an object containing server \"name\" and \"ircURI\"";
+    if (typeof options.server !== "object" ||
+        typeof options.server.type !== "string" ||
+        typeof options.server.name !== "string") {
+      throw "server must be an object containing at least server \"type\" and \"name\"";
     }
     if (typeof options.channelName !== "string") {
       throw "channelName must be a string";
@@ -166,15 +168,16 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     }
 
     /**
-     * Property: network
+     * Property: server
      *
-     * Contains information about the IRC network
+     * Contains information about the chat server/network
      *
      * Properties:
-     *   name - Shortname/id of network (e.g. "freenode")
-     *   ircURI - IRC URI of network (e.g. "irc://irc.freenode.net/")
+     *   type - Type of server/protocol (e.g. "irc", "xmpp", "campfire", "slack")
+     *   name - Shortname/id of network/server (e.g. "freenode")
+     *   ircURI - (optional) IRC URI of network (e.g. "irc://irc.freenode.net/")
      */
-    this.network = options.network;
+    this.server = options.server;
 
     /**
      * Property: channelName
@@ -217,10 +220,10 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      * Document path of the archive file
      */
     if (this.channelName.match(/^#/)) {
-      var channelName = this.channelName.replace(/#/,'');
-      this.path = this.network.name+"/channels/"+channelName+"/"+this.dateId;
+      var channelName = this.channelName.replace(/^#/,'');
+      this.path = `${this.server.type}/${this.server.name}/channels/${channelName}/${this.dateId}`;
     } else {
-      this.path = this.network.name+"/users/"+this.channelName+"/"+this.dateId;
+      this.path = `${this.server.type}/${this.server.name}/users/${this.channelName}/${this.dateId}`;
     }
 
     /**
@@ -303,7 +306,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      * Updates and writes an existing archive document
      */
     _updateDocument: function(archive, messages) {
-      RemoteStorage.log('[messages-irc] Updating archive document', archive);
+      RemoteStorage.log('[chat-messages] Updating archive document', archive);
 
       if (Array.isArray(messages)) {
         messages.forEach(function(message) {
@@ -322,7 +325,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      * Creates and writes a new archive document
      */
     _createDocument: function(messages) {
-      RemoteStorage.log('[messages-irc] Creating new archive document');
+      RemoteStorage.log('[chat-messages] Creating new archive document');
       let archive = this._buildArchiveObject();
 
       if (Array.isArray(messages)) {
@@ -350,15 +353,15 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       var id;
       if (this.channelName.match(/^#/)) {
         var channelName = this.channelName.replace(/#/,'');
-        id = "messages-irc/"+this.network.name+"/channels/"+channelName+"/";
+        id = "chat-messages/"+this.server.type+"/"+this.server.name+"/channels/"+channelName+"/";
       } else {
-        id = "messages-irc/"+this.network.name+"/users/"+this.channelName+"/";
+        id = "chat-messages/"+this.server.name+"/users/"+this.channelName+"/";
       }
       return {
         "@id": id,
         "@type": "ChatChannel",
         "name": this.channelName,
-        "ircURI": this.network.ircURI+"/"+this.channelName.replace(/#/,''),
+        "ircURI": this.server.ircURI+"/"+this.channelName.replace(/#/,''),
         "today": {
           "@id": this.dateId,
           "@type": "ChatLog",
@@ -380,11 +383,11 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
           let path = this.path.substring(0, this.path.length-this.dateId.length)+archive.today['@id'];
 
           return this.client.storeObject('daily-archive', path, archive).then(() => {
-            RemoteStorage.log('[messages-irc] Previous archive written to remote storage', path, archive);
+            RemoteStorage.log('[chat-messages] Previous archive written to remote storage', path, archive);
             return archive;
           });
         } else {
-          RemoteStorage.log('[messages-irc] Previous archive not found');
+          RemoteStorage.log('[chat-messages] Previous archive not found');
           return false;
         }
       });
@@ -460,12 +463,12 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
      * Write archive document
      */
     _sync: function(obj) {
-      RemoteStorage.log('[messages-irc] Writing archive object', obj);
+      RemoteStorage.log('[chat-messages] Writing archive object', obj);
 
       return this.client.storeObject('daily-archive', this.path, obj).then(function(){
-        RemoteStorage.log('[messages-irc] Archive written to remote storage');
+        RemoteStorage.log('[chat-messages] Archive written to remote storage');
       },function(error){
-        RemoteStorage.log('[messages-irc] Error trying to store object', error);
+        RemoteStorage.log('[chat-messages] Error trying to store object', error);
       });
     }
   };

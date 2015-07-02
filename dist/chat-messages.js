@@ -25,7 +25,7 @@
  * 
  */
 /**
- * bluebird build version 2.9.27
+ * bluebird build version 2.9.30
  * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, cancel, using, filter, any, each, timers
 */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Promise=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof _dereq_=="function"&&_dereq_;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof _dereq_=="function"&&_dereq_;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -186,13 +186,18 @@ if (!util.hasDevTools) {
     Async.prototype.invoke = AsyncInvoke;
     Async.prototype.settlePromises = AsyncSettlePromises;
 } else {
+    if (schedule.isStatic) {
+        schedule = function(fn) { setTimeout(fn, 0); };
+    }
     Async.prototype.invokeLater = function (fn, receiver, arg) {
         if (this._trampolineEnabled) {
             AsyncInvokeLater.call(this, fn, receiver, arg);
         } else {
-            setTimeout(function() {
-                fn.call(receiver, arg);
-            }, 100);
+            this._schedule(function() {
+                setTimeout(function() {
+                    fn.call(receiver, arg);
+                }, 100);
+            });
         }
     };
 
@@ -200,9 +205,9 @@ if (!util.hasDevTools) {
         if (this._trampolineEnabled) {
             AsyncInvoke.call(this, fn, receiver, arg);
         } else {
-            setTimeout(function() {
+            this._schedule(function() {
                 fn.call(receiver, arg);
-            }, 0);
+            });
         }
     };
 
@@ -210,9 +215,9 @@ if (!util.hasDevTools) {
         if (this._trampolineEnabled) {
             AsyncSettlePromises.call(this, promise);
         } else {
-            setTimeout(function() {
+            this._schedule(function() {
                 promise._settlePromises();
-            }, 0);
+            });
         }
     };
 }
@@ -1139,7 +1144,13 @@ if (debugging) {
     async.disableTrampolineIfNecessary();
 }
 
+Promise.prototype._ignoreRejections = function() {
+    this._unsetRejectionIsUnhandled();
+    this._bitField = this._bitField | 16777216;
+};
+
 Promise.prototype._ensurePossibleRejectionHandled = function () {
+    if ((this._bitField & 16777216) !== 0) return;
     this._setRejectionIsUnhandled();
     async.invokeLater(this._notifyUnhandledRejection, this, undefined);
 };
@@ -3008,7 +3019,7 @@ PromiseArray.prototype._init = function init(_, resolveValueIfEmpty) {
         if (maybePromise instanceof Promise) {
             maybePromise = maybePromise._target();
             if (isResolved) {
-                maybePromise._unsetRejectionIsUnhandled();
+                maybePromise._ignoreRejections();
             } else if (maybePromise._isPending()) {
                 maybePromise._proxyPromiseArray(this, i);
             } else if (maybePromise._isFulfilled()) {
@@ -3209,10 +3220,10 @@ var defaultSuffix = "Async";
 var defaultPromisified = {__isPromisified__: true};
 var noCopyPropsPattern =
     /^(?:length|name|arguments|caller|callee|prototype|__isPromisified__)$/;
-var defaultFilter = function(name, func) {
+var defaultFilter = function(name) {
     return util.isIdentifier(name) &&
         name.charAt(0) !== "_" &&
-        !util.isClass(func);
+        name !== "constructor";
 };
 
 function propsFilter(key) {
@@ -3257,6 +3268,7 @@ function promisifiableMethods(obj, suffix, suffixRegexp, filter) {
         var passesDefaultFilter = filter === defaultFilter
             ? true : defaultFilter(key, value, obj);
         if (typeof value === "function" &&
+            !util.isNativeFunctionMethod(value) &&
             !isPromisified(value) &&
             !hasPromisified(obj, key, suffix) &&
             filter(key, value, obj, passesDefaultFilter)) {
@@ -3356,6 +3368,7 @@ function(callback, receiver, originalName, fn) {
                         "nodebackForPromise",
                         "tryCatch",
                         "errorObj",
+                        "notEnumerableProp",
                         "INTERNAL","'use strict';                            \n\
         var ret = function (Parameters) {                                    \n\
             'use strict';                                                    \n\
@@ -3373,7 +3386,7 @@ function(callback, receiver, originalName, fn) {
             }                                                                \n\
             return promise;                                                  \n\
         };                                                                   \n\
-        ret.__isPromisified__ = true;                                        \n\
+        notEnumerableProp(ret, '__isPromisified__', true);                   \n\
         return ret;                                                          \n\
         "
         .replace("Parameters", parameterDeclaration(newParameterCount))
@@ -3387,6 +3400,7 @@ function(callback, receiver, originalName, fn) {
             nodebackForPromise,
             util.tryCatch,
             util.errorObj,
+            util.notEnumerableProp,
             INTERNAL
         );
 };
@@ -3413,7 +3427,7 @@ function makeNodePromisifiedClosure(callback, receiver, _, fn) {
         }
         return promise;
     }
-    promisified.__isPromisified__ = true;
+    util.notEnumerableProp(promisified, "__isPromisified__", true);
     return promisified;
 }
 
@@ -4667,13 +4681,17 @@ var inheritedDataKeys = (function() {
 
 })();
 
+var thisAssignmentPattern = /this\s*\.\s*\S+\s*=/;
 function isClass(fn) {
     try {
         if (typeof fn === "function") {
             var keys = es5.names(fn.prototype);
-            if (es5.isES5) return keys.length > 1;
-            return keys.length > 0 &&
-                   !(keys.length === 1 && keys[0] === "constructor");
+            if (((es5.isES5 && keys.length > 1) ||
+                (keys.length > 0 &&
+                !(keys.length === 1 && keys[0] === "constructor"))) ||
+                thisAssignmentPattern.test(fn + "")) {
+                return true;
+            }
         }
         return false;
     } catch (e) {
@@ -4758,6 +4776,13 @@ function copyDescriptors(from, to, filter) {
     }
 }
 
+function isNativeFunctionMethod(fn) {
+    return fn === fn.call ||
+           fn === fn.toString ||
+           fn === fn.bind ||
+           fn === fn.apply;
+}
+
 var ret = {
     isClass: isClass,
     isIdentifier: isIdentifier,
@@ -4788,7 +4813,8 @@ var ret = {
     hasDevTools: typeof chrome !== "undefined" && chrome &&
                  typeof chrome.loadTimes === "function",
     isNode: typeof process !== "undefined" &&
-        classString(process).toLowerCase() === "[object process]"
+        classString(process).toLowerCase() === "[object process]",
+    isNativeFunctionMethod: isNativeFunctionMethod
 };
 ret.isRecentNode = ret.isNode && (function() {
     var version = process.versions.node.split(".").map(Number);
@@ -7658,53 +7684,6 @@ if (typeof Object.create === 'function') {
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
-
-},{}],"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/os-browserify/browser.js":[function(require,module,exports){
-exports.endianness = function () { return 'LE' };
-
-exports.hostname = function () {
-    if (typeof location !== 'undefined') {
-        return location.hostname
-    }
-    else return '';
-};
-
-exports.loadavg = function () { return [] };
-
-exports.uptime = function () { return 0 };
-
-exports.freemem = function () {
-    return Number.MAX_VALUE;
-};
-
-exports.totalmem = function () {
-    return Number.MAX_VALUE;
-};
-
-exports.cpus = function () { return [] };
-
-exports.type = function () { return 'Browser' };
-
-exports.release = function () {
-    if (typeof navigator !== 'undefined') {
-        return navigator.appVersion;
-    }
-    return '';
-};
-
-exports.networkInterfaces
-= exports.getNetworkInterfaces
-= function () { return {} };
-
-exports.arch = function () { return 'javascript' };
-
-exports.platform = function () { return 'browser' };
-
-exports.tmpdir = exports.tmpDir = function () {
-    return '/tmp';
-};
-
-exports.EOL = '\n';
 
 },{}],"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/process/browser.js":[function(require,module,exports){
 // shim for using process in browser
@@ -12209,7 +12188,7 @@ RemoteStorage.WireClient.readBinaryData = function (content, mimeType, callback)
 module.exports = RemoteStorage;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/Math.uuid.js":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/lib/Math.uuid.js","./src/remotestorage.js":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/src/remotestorage.js","bluebird":"/home/basti/src/remotestorage/modules/node_modules/bluebird/js/browser/bluebird.js","tv4":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/tv4/tv4.js","webfinger.js":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/webfinger.js/src/webfinger.js","xhr2":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/xhr2/lib/xhr2.js"}],"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/tv4/tv4.js":[function(require,module,exports){
+},{"./lib/Math.uuid.js":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/lib/Math.uuid.js","./src/remotestorage.js":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/src/remotestorage.js","bluebird":"/home/basti/src/remotestorage/modules/node_modules/bluebird/js/browser/bluebird.js","tv4":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/tv4/tv4.js","webfinger.js":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/webfinger.js/src/webfinger.js","xhr2":"/home/basti/src/remotestorage/modules/node_modules/xhr2/lib/browser.js"}],"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/tv4/tv4.js":[function(require,module,exports){
 /*
 Author: Geraint Luff and others
 Year: 2013
@@ -14121,845 +14100,7 @@ if (typeof XMLHttpRequest === 'undefined') {
 })();
 
 
-},{"xmlhttprequest":"/home/basti/src/remotestorage/modules/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"}],"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node_modules/xhr2/lib/xhr2.js":[function(require,module,exports){
-(function (process,Buffer){
-// Generated by CoffeeScript 1.6.3
-(function() {
-  var InvalidStateError, NetworkError, SecurityError, XMLHttpRequest, XMLHttpRequestEventTarget, XMLHttpRequestProgressEvent, XMLHttpRequestUpload, http, https, os, url, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  XMLHttpRequestEventTarget = (function() {
-    function XMLHttpRequestEventTarget() {
-      this.onloadstart = null;
-      this.onprogress = null;
-      this.onabort = null;
-      this.onerror = null;
-      this.onload = null;
-      this.ontimeout = null;
-      this.onloadend = null;
-      this._listeners = {};
-    }
-
-    XMLHttpRequestEventTarget.prototype.onloadstart = null;
-
-    XMLHttpRequestEventTarget.prototype.onprogress = null;
-
-    XMLHttpRequestEventTarget.prototype.onabort = null;
-
-    XMLHttpRequestEventTarget.prototype.onerror = null;
-
-    XMLHttpRequestEventTarget.prototype.onload = null;
-
-    XMLHttpRequestEventTarget.prototype.ontimeout = null;
-
-    XMLHttpRequestEventTarget.prototype.onloadend = null;
-
-    XMLHttpRequestEventTarget.prototype.addEventListener = function(eventType, listener) {
-      var _base;
-      eventType = eventType.toLowerCase();
-      (_base = this._listeners)[eventType] || (_base[eventType] = []);
-      this._listeners[eventType].push(listener);
-      return void 0;
-    };
-
-    XMLHttpRequestEventTarget.prototype.removeEventListener = function(eventType, listener) {
-      var index;
-      eventType = eventType.toLowerCase();
-      if (this._listeners[eventType]) {
-        index = this._listeners[eventType].indexOf(listener);
-        if (index !== -1) {
-          this._listeners.splice(index, 1);
-        }
-      }
-      return void 0;
-    };
-
-    XMLHttpRequestEventTarget.prototype.dispatchEvent = function(event) {
-      var eventType, listener, listeners, _i, _len;
-      eventType = event.type;
-      if (listeners = this._listeners[eventType]) {
-        for (_i = 0, _len = listeners.length; _i < _len; _i++) {
-          listener = listeners[_i];
-          listener(event);
-        }
-      }
-      if (listener = this["on" + eventType]) {
-        listener(event);
-      }
-      return void 0;
-    };
-
-    return XMLHttpRequestEventTarget;
-
-  })();
-
-  http = require('http');
-
-  https = require('https');
-
-  os = require('os');
-
-  url = require('url');
-
-  XMLHttpRequest = (function(_super) {
-    __extends(XMLHttpRequest, _super);
-
-    function XMLHttpRequest(options) {
-      XMLHttpRequest.__super__.constructor.call(this);
-      this.onreadystatechange = null;
-      this._anonymous = options && options.anon;
-      this.readyState = XMLHttpRequest.UNSENT;
-      this.response = null;
-      this.responseText = '';
-      this.responseType = '';
-      this.status = 0;
-      this.statusText = '';
-      this.timeout = 0;
-      this.upload = new XMLHttpRequestUpload(this);
-      this._method = null;
-      this._url = null;
-      this._sync = false;
-      this._headers = null;
-      this._loweredHeaders = null;
-      this._mimeOverride = null;
-      this._request = null;
-      this._response = null;
-      this._responseParts = null;
-      this._responseHeaders = null;
-      this._aborting = null;
-      this._error = null;
-      this._loadedBytes = 0;
-      this._totalBytes = 0;
-      this._lengthComputable = false;
-    }
-
-    XMLHttpRequest.prototype.onreadystatechange = null;
-
-    XMLHttpRequest.prototype.readyState = null;
-
-    XMLHttpRequest.prototype.response = null;
-
-    XMLHttpRequest.prototype.responseText = null;
-
-    XMLHttpRequest.prototype.responseType = null;
-
-    XMLHttpRequest.prototype.status = null;
-
-    XMLHttpRequest.prototype.timeout = null;
-
-    XMLHttpRequest.prototype.upload = null;
-
-    XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-      var xhrUrl;
-      method = method.toUpperCase();
-      if (method in this._restrictedMethods) {
-        throw new SecurityError("HTTP method " + method + " is not allowed in XHR");
-      }
-      xhrUrl = this._parseUrl(url);
-      if (async === void 0) {
-        async = true;
-      }
-      switch (this.readyState) {
-        case XMLHttpRequest.UNSENT:
-        case XMLHttpRequest.OPENED:
-        case XMLHttpRequest.DONE:
-          null;
-          break;
-        case XMLHttpRequest.HEADERS_RECEIVED:
-        case XMLHttpRequest.LOADING:
-          null;
-      }
-      this._method = method;
-      this._url = xhrUrl;
-      this._sync = !async;
-      this._headers = {};
-      this._loweredHeaders = {};
-      this._mimeOverride = null;
-      this._setReadyState(XMLHttpRequest.OPENED);
-      this._request = null;
-      this._response = null;
-      this.status = 0;
-      this.statusText = '';
-      this._responseParts = [];
-      this._responseHeaders = null;
-      this._loadedBytes = 0;
-      this._totalBytes = 0;
-      this._lengthComputable = false;
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype.setRequestHeader = function(name, value) {
-      var loweredName;
-      if (this.readyState !== XMLHttpRequest.OPENED) {
-        throw new InvalidStateError("XHR readyState must be OPENED");
-      }
-      loweredName = name.toLowerCase();
-      if (this._restrictedHeaders[loweredName] || /^sec\-/.test(loweredName) || /^proxy-/.test(loweredName)) {
-        console.warn("Refused to set unsafe header \"" + name + "\"");
-        return void 0;
-      }
-      value = value.toString();
-      if (loweredName in this._loweredHeaders) {
-        name = this._loweredHeaders[loweredName];
-        this._headers[name] = this._headers[name] + ', ' + value;
-      } else {
-        this._loweredHeaders[loweredName] = name;
-        this._headers[name] = value;
-      }
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype.send = function(data) {
-      if (this.readyState !== XMLHttpRequest.OPENED) {
-        throw new InvalidStateError("XHR readyState must be OPENED");
-      }
-      if (this._request) {
-        throw new InvalidStateError("send() already called");
-      }
-      switch (this._url.protocol) {
-        case 'file:':
-          this._sendFile(data);
-          break;
-        case 'http:':
-        case 'https:':
-          this._sendHttp(data);
-          break;
-        default:
-          throw new NetworkError("Unsupported protocol " + this._url.protocol);
-      }
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype.abort = function() {
-      if (!this._request) {
-        return;
-      }
-      this._request.abort();
-      this._setError();
-      this._dispatchProgress('abort');
-      this._dispatchProgress('loadend');
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype.getResponseHeader = function(name) {
-      var loweredName;
-      if (!this._responseHeaders) {
-        return null;
-      }
-      loweredName = name.toLowerCase();
-      if (loweredName in this._responseHeaders) {
-        return this._responseHeaders[loweredName];
-      } else {
-        return null;
-      }
-    };
-
-    XMLHttpRequest.prototype.getAllResponseHeaders = function() {
-      var lines, name, value;
-      if (!this._responseHeaders) {
-        return '';
-      }
-      lines = (function() {
-        var _ref, _results;
-        _ref = this._responseHeaders;
-        _results = [];
-        for (name in _ref) {
-          value = _ref[name];
-          _results.push("" + name + ": " + value);
-        }
-        return _results;
-      }).call(this);
-      return lines.join("\r\n");
-    };
-
-    XMLHttpRequest.prototype.overrideMimeType = function(newMimeType) {
-      if (this.readyState === XMLHttpRequest.LOADING || this.readyState === XMLHttpRequest.DONE) {
-        throw new InvalidStateError("overrideMimeType() not allowed in LOADING or DONE");
-      }
-      this._mimeOverride = newMimeType.toLowerCase();
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype.nodejsSet = function(options) {
-      if ('httpAgent' in options) {
-        this.nodejsHttpAgent = options.httpAgent;
-      }
-      if ('httpsAgent' in options) {
-        this.nodejsHttpsAgent = options.httpsAgent;
-      }
-      return void 0;
-    };
-
-    XMLHttpRequest.nodejsSet = function(options) {
-      XMLHttpRequest.prototype.nodejsSet(options);
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype.UNSENT = 0;
-
-    XMLHttpRequest.UNSENT = 0;
-
-    XMLHttpRequest.prototype.OPENED = 1;
-
-    XMLHttpRequest.OPENED = 1;
-
-    XMLHttpRequest.prototype.HEADERS_RECEIVED = 2;
-
-    XMLHttpRequest.HEADERS_RECEIVED = 2;
-
-    XMLHttpRequest.prototype.LOADING = 3;
-
-    XMLHttpRequest.LOADING = 3;
-
-    XMLHttpRequest.prototype.DONE = 4;
-
-    XMLHttpRequest.DONE = 4;
-
-    XMLHttpRequest.prototype.nodejsHttpAgent = http.globalAgent;
-
-    XMLHttpRequest.prototype.nodejsHttpsAgent = https.globalAgent;
-
-    XMLHttpRequest.prototype._restrictedMethods = {
-      CONNECT: true,
-      TRACE: true,
-      TRACK: true
-    };
-
-    XMLHttpRequest.prototype._restrictedHeaders = {
-      'accept-charset': true,
-      'accept-encoding': true,
-      'access-control-request-headers': true,
-      'access-control-request-method': true,
-      connection: true,
-      'content-length': true,
-      cookie: true,
-      cookie2: true,
-      date: true,
-      dnt: true,
-      expect: true,
-      host: true,
-      'keep-alive': true,
-      origin: true,
-      referer: true,
-      te: true,
-      trailer: true,
-      'transfer-encoding': true,
-      upgrade: true,
-      'user-agent': true,
-      via: true
-    };
-
-    XMLHttpRequest.prototype._privateHeaders = {
-      'set-cookie': true,
-      'set-cookie2': true
-    };
-
-    XMLHttpRequest.prototype._userAgent = ("Mozilla/5.0 (" + (os.type()) + " " + (os.arch()) + ") ") + ("node.js/" + process.versions.node + " v8/" + process.versions.v8);
-
-    XMLHttpRequest.prototype._setReadyState = function(newReadyState) {
-      var event;
-      this.readyState = newReadyState;
-      event = new XMLHttpRequestProgressEvent('readystatechange', this);
-      this.dispatchEvent(event);
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._sendFile = function() {
-      if (this._url.method !== 'GET') {
-        throw new NetworkError('The file protocol only supports GET');
-      }
-      throw new Error("Protocol file: not implemented");
-    };
-
-    XMLHttpRequest.prototype._sendHttp = function(data) {
-      if (this._sync) {
-        throw new Error("Synchronous XHR processing not implemented");
-      }
-      if ((data != null) && (this._method === 'GET' || this._method === 'HEAD')) {
-        console.warn("Discarding entity body for " + this._method + " requests");
-        data = null;
-      } else {
-        data || (data = '');
-      }
-      this.upload._setData(data);
-      this._finalizeHeaders();
-      this._sendHxxpRequest();
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._sendHxxpRequest = function() {
-      var agent, hxxp, request,
-        _this = this;
-      if (this._url.protocol === 'http:') {
-        hxxp = http;
-        agent = this.nodejsHttpAgent;
-      } else {
-        hxxp = https;
-        agent = this.nodejsHttpsAgent;
-      }
-      request = hxxp.request({
-        hostname: this._url.hostname,
-        port: this._url.port,
-        path: this._url.path,
-        auth: this._url.auth,
-        method: this._method,
-        headers: this._headers,
-        agent: agent
-      });
-      this._request = request;
-      if (this.timeout) {
-        request.setTimeout(this.timeout, function() {
-          return _this._onHttpTimeout(request);
-        });
-      }
-      request.on('response', function(response) {
-        return _this._onHttpResponse(request, response);
-      });
-      request.on('error', function(error) {
-        return _this._onHttpRequestError(request, error);
-      });
-      this.upload._startUpload(request);
-      if (this._request === request) {
-        this._dispatchProgress('loadstart');
-      }
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._finalizeHeaders = function() {
-      this._headers['Connection'] = 'keep-alive';
-      this._headers['Host'] = this._url.host;
-      if (this._anonymous) {
-        this._headers['Referer'] = 'about:blank';
-      }
-      this._headers['User-Agent'] = this._userAgent;
-      this.upload._finalizeHeaders(this._headers, this._loweredHeaders);
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._onHttpResponse = function(request, response) {
-      var lengthString,
-        _this = this;
-      if (this._request !== request) {
-        return;
-      }
-      switch (response.statusCode) {
-        case 301:
-        case 302:
-        case 303:
-        case 307:
-        case 308:
-          this._url = this._parseUrl(response.headers['location']);
-          this._method = 'GET';
-          if ('content-type' in this._loweredHeaders) {
-            delete this._headers[this._loweredHeaders['content-type']];
-            delete this._loweredHeaders['content-type'];
-          }
-          if ('Content-Type' in this._headers) {
-            delete this._headers['Content-Type'];
-          }
-          delete this._headers['Content-Length'];
-          this.upload._reset();
-          this._finalizeHeaders();
-          this._sendHxxpRequest();
-          return;
-      }
-      this._response = response;
-      this._response.on('data', function(data) {
-        return _this._onHttpResponseData(response, data);
-      });
-      this._response.on('end', function() {
-        return _this._onHttpResponseEnd(response);
-      });
-      this._response.on('close', function() {
-        return _this._onHttpResponseClose(response);
-      });
-      this.status = this._response.statusCode;
-      this.statusText = http.STATUS_CODES[this.status];
-      this._parseResponseHeaders(response);
-      if (lengthString = this._responseHeaders['content-length']) {
-        this._totalBytes = parseInt(lengthString);
-        this._lengthComputable = true;
-      } else {
-        this._lengthComputable = false;
-      }
-      return this._setReadyState(XMLHttpRequest.HEADERS_RECEIVED);
-    };
-
-    XMLHttpRequest.prototype._onHttpResponseData = function(response, data) {
-      if (this._response !== response) {
-        return;
-      }
-      this._responseParts.push(data);
-      this._loadedBytes += data.length;
-      if (this.readyState !== XMLHttpRequest.LOADING) {
-        this._setReadyState(XMLHttpRequest.LOADING);
-      }
-      return this._dispatchProgress('progress');
-    };
-
-    XMLHttpRequest.prototype._onHttpResponseEnd = function(response) {
-      if (this._response !== response) {
-        return;
-      }
-      this._parseResponse();
-      this._request = null;
-      this._response = null;
-      this._setReadyState(XMLHttpRequest.DONE);
-      this._dispatchProgress('load');
-      return this._dispatchProgress('loadend');
-    };
-
-    XMLHttpRequest.prototype._onHttpResponseClose = function(response) {
-      var request;
-      if (this._response !== response) {
-        return;
-      }
-      request = this._request;
-      this._setError();
-      request.abort();
-      this._setReadyState(XMLHttpRequest.DONE);
-      this._dispatchProgress('error');
-      return this._dispatchProgress('loadend');
-    };
-
-    XMLHttpRequest.prototype._onHttpTimeout = function(request) {
-      if (this._request !== request) {
-        return;
-      }
-      this._setError();
-      request.abort();
-      this._setReadyState(XMLHttpRequest.DONE);
-      this._dispatchProgress('timeout');
-      return this._dispatchProgress('loadend');
-    };
-
-    XMLHttpRequest.prototype._onHttpRequestError = function(request, error) {
-      if (this._request !== request) {
-        return;
-      }
-      this._setError();
-      request.abort();
-      this._setReadyState(XMLHttpRequest.DONE);
-      this._dispatchProgress('error');
-      return this._dispatchProgress('loadend');
-    };
-
-    XMLHttpRequest.prototype._dispatchProgress = function(eventType) {
-      var event;
-      event = new XMLHttpRequestProgressEvent(eventType, this);
-      event.lengthComputable = this._lengthComputable;
-      event.loaded = this._loadedBytes;
-      event.total = this._totalBytes;
-      this.dispatchEvent(event);
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._setError = function() {
-      this._request = null;
-      this._response = null;
-      this._responseHeaders = null;
-      this._responseParts = null;
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._parseUrl = function(urlString) {
-      var index, password, user, xhrUrl;
-      xhrUrl = url.parse(urlString, false, true);
-      xhrUrl.hash = null;
-      if (xhrUrl.auth && ((typeof user !== "undefined" && user !== null) || (typeof password !== "undefined" && password !== null))) {
-        index = xhrUrl.auth.indexOf(':');
-        if (index === -1) {
-          if (!user) {
-            user = xhrUrl.auth;
-          }
-        } else {
-          if (!user) {
-            user = xhrUrl.substring(0, index);
-          }
-          if (!password) {
-            password = xhrUrl.substring(index + 1);
-          }
-        }
-      }
-      if (user || password) {
-        xhrUrl.auth = "" + user + ":" + password;
-      }
-      return xhrUrl;
-    };
-
-    XMLHttpRequest.prototype._parseResponseHeaders = function(response) {
-      var loweredName, name, value, _ref;
-      this._responseHeaders = {};
-      _ref = response.headers;
-      for (name in _ref) {
-        value = _ref[name];
-        loweredName = name.toLowerCase();
-        if (this._privateHeaders[loweredName]) {
-          continue;
-        }
-        if (this._mimeOverride !== null && loweredName === 'content-type') {
-          value = this._mimeOverride;
-        }
-        this._responseHeaders[loweredName] = value;
-      }
-      if (this._mimeOverride !== null && !('content-type' in this._responseHeaders)) {
-        this._responseHeaders['content-type'] = this._mimeOverride;
-      }
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._parseResponse = function() {
-      var arrayBuffer, buffer, i, jsonError, view, _i, _ref;
-      if (Buffer.concat) {
-        buffer = Buffer.concat(this._responseParts);
-      } else {
-        buffer = this._concatBuffers(this._responseParts);
-      }
-      this._responseParts = null;
-      switch (this.responseType) {
-        case 'text':
-          this._parseTextResponse(buffer);
-          break;
-        case 'json':
-          this.responseText = null;
-          try {
-            this.response = JSON.parse(buffer.toString('utf-8'));
-          } catch (_error) {
-            jsonError = _error;
-            this.response = null;
-          }
-          break;
-        case 'buffer':
-          this.responseText = null;
-          this.response = buffer;
-          break;
-        case 'arraybuffer':
-          this.responseText = null;
-          arrayBuffer = new ArrayBuffer(buffer.length);
-          view = new Uint8Array(arrayBuffer);
-          for (i = _i = 0, _ref = buffer.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-            view[i] = buffer[i];
-          }
-          this.response = arrayBuffer;
-          break;
-        default:
-          this._parseTextResponse(buffer);
-      }
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._parseTextResponse = function(buffer) {
-      var e;
-      try {
-        this.responseText = buffer.toString(this._parseResponseEncoding());
-      } catch (_error) {
-        e = _error;
-        this.responseText = buffer.toString('binary');
-      }
-      this.response = this.responseText;
-      return void 0;
-    };
-
-    XMLHttpRequest.prototype._parseResponseEncoding = function() {
-      var contentType, encoding, match;
-      encoding = null;
-      if (contentType = this._responseHeaders['content-type']) {
-        if (match = /\;\s*charset\=(.*)$/.exec(contentType)) {
-          return match[1];
-        }
-      }
-      return 'utf-8';
-    };
-
-    XMLHttpRequest.prototype._concatBuffers = function(buffers) {
-      var buffer, length, target, _i, _j, _len, _len1;
-      if (buffers.length === 0) {
-        return new Buffer(0);
-      }
-      if (buffers.length === 1) {
-        return buffers[0];
-      }
-      length = 0;
-      for (_i = 0, _len = buffers.length; _i < _len; _i++) {
-        buffer = buffers[_i];
-        length += buffer.length;
-      }
-      target = new Buffer(length);
-      length = 0;
-      for (_j = 0, _len1 = buffers.length; _j < _len1; _j++) {
-        buffer = buffers[_j];
-        buffer.copy(target, length);
-        length += buffer.length;
-      }
-      return target;
-    };
-
-    return XMLHttpRequest;
-
-  })(XMLHttpRequestEventTarget);
-
-  module.exports = XMLHttpRequest;
-
-  XMLHttpRequest.XMLHttpRequest = XMLHttpRequest;
-
-  SecurityError = (function(_super) {
-    __extends(SecurityError, _super);
-
-    function SecurityError() {
-      SecurityError.__super__.constructor.apply(this, arguments);
-    }
-
-    return SecurityError;
-
-  })(Error);
-
-  XMLHttpRequest.SecurityError = SecurityError;
-
-  InvalidStateError = (function(_super) {
-    __extends(InvalidStateError, _super);
-
-    function InvalidStateError() {
-      InvalidStateError.__super__.constructor.apply(this, arguments);
-    }
-
-    return InvalidStateError;
-
-  })(Error);
-
-  InvalidStateError = (function(_super) {
-    __extends(InvalidStateError, _super);
-
-    function InvalidStateError() {
-      _ref = InvalidStateError.__super__.constructor.apply(this, arguments);
-      return _ref;
-    }
-
-    return InvalidStateError;
-
-  })(Error);
-
-  XMLHttpRequest.InvalidStateError = InvalidStateError;
-
-  NetworkError = (function(_super) {
-    __extends(NetworkError, _super);
-
-    function NetworkError() {
-      NetworkError.__super__.constructor.apply(this, arguments);
-    }
-
-    return NetworkError;
-
-  })(Error);
-
-  XMLHttpRequest.NetworkError = NetworkError;
-
-  XMLHttpRequestProgressEvent = (function() {
-    function XMLHttpRequestProgressEvent(type, target) {
-      this.type = type;
-      this.target = target;
-      this.currentTarget = this.target;
-      this.lengthComputable = false;
-      this.loaded = 0;
-      this.total = 0;
-    }
-
-    XMLHttpRequestProgressEvent.prototype.bubbles = false;
-
-    XMLHttpRequestProgressEvent.prototype.cancelable = false;
-
-    XMLHttpRequestProgressEvent.prototype.target = null;
-
-    XMLHttpRequestProgressEvent.prototype.loaded = null;
-
-    XMLHttpRequestProgressEvent.prototype.lengthComputable = null;
-
-    XMLHttpRequestProgressEvent.prototype.total = null;
-
-    return XMLHttpRequestProgressEvent;
-
-  })();
-
-  XMLHttpRequest.XMLHttpRequestProgressEvent = XMLHttpRequestProgressEvent;
-
-  XMLHttpRequestUpload = (function(_super) {
-    __extends(XMLHttpRequestUpload, _super);
-
-    function XMLHttpRequestUpload(request) {
-      XMLHttpRequestUpload.__super__.constructor.call(this);
-      this._request = request;
-      this._reset();
-    }
-
-    XMLHttpRequestUpload.prototype._reset = function() {
-      this._contentType = null;
-      this._body = null;
-      return void 0;
-    };
-
-    XMLHttpRequestUpload.prototype._setData = function(data) {
-      var body, i, offset, view, _i, _j, _ref1, _ref2;
-      if (typeof data === 'undefined' || data === null) {
-        return;
-      }
-      if (typeof data === 'string') {
-        if (data.length !== 0) {
-          this._contentType = 'text/plain;charset=UTF-8';
-        }
-        this._body = new Buffer(data, 'utf8');
-      } else if (Buffer.isBuffer(data)) {
-        this._body = data;
-      } else if (data instanceof ArrayBuffer) {
-        body = new Buffer(data.byteLength);
-        view = new Uint8Array(data);
-        for (i = _i = 0, _ref1 = data.byteLength; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
-          body[i] = view[i];
-        }
-        this._body = body;
-      } else if (data.buffer && data.buffer instanceof ArrayBuffer) {
-        body = new Buffer(data.byteLength);
-        offset = data.byteOffset;
-        view = new Uint8Array(data.buffer);
-        for (i = _j = 0, _ref2 = data.byteLength; 0 <= _ref2 ? _j < _ref2 : _j > _ref2; i = 0 <= _ref2 ? ++_j : --_j) {
-          body[i] = view[i + offset];
-        }
-        this._body = body;
-      } else {
-        throw new Error("Unsupported send() data " + data);
-      }
-      return void 0;
-    };
-
-    XMLHttpRequestUpload.prototype._finalizeHeaders = function(headers, loweredHeaders) {
-      if (this._contentType) {
-        if (!('content-type' in loweredHeaders)) {
-          headers['Content-Type'] = this._contentType;
-        }
-      }
-      if (this._body) {
-        headers['Content-Length'] = this._body.length.toString();
-      }
-      return void 0;
-    };
-
-    XMLHttpRequestUpload.prototype._startUpload = function(request) {
-      if (this._body) {
-        request.write(this._body);
-      }
-      request.end();
-      return void 0;
-    };
-
-    return XMLHttpRequestUpload;
-
-  })(XMLHttpRequestEventTarget);
-
-  XMLHttpRequest.XMLHttpRequestUpload = XMLHttpRequestUpload;
-
-}).call(this);
-
-}).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/process/browser.js","buffer":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/buffer/index.js","http":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/http-browserify/index.js","https":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/https-browserify/index.js","os":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/os-browserify/browser.js","url":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/url/url.js"}],"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/src/remotestorage.js":[function(require,module,exports){
+},{"xmlhttprequest":"/home/basti/src/remotestorage/modules/node_modules/xmlhttprequest/lib/XMLHttpRequest.js"}],"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/src/remotestorage.js":[function(require,module,exports){
 (function (global){
 (function (global) {
 
@@ -15274,13 +14415,13 @@ if (typeof XMLHttpRequest === 'undefined') {
      * Parameters:
      *   userAddress - The user address (user@host) to connect to.
      *
-     * Discovers the webfinger profile of the given user address and initiates
+     * Discovers the WebFinger profile of the given user address and initiates
      * the OAuth dance.
      *
      * This method must be called *after* all required access has been claimed.
      *
      */
-    connect: function (userAddress) {
+    connect: function (userAddress, token) {
       this.setBackend('remotestorage');
       if (userAddress.indexOf('@') < 0) {
         this._emit('error', new RemoteStorage.DiscoveryError("User address doesn't contain an @."));
@@ -15304,13 +14445,22 @@ if (typeof XMLHttpRequest === 'undefined') {
         this.remote.configure(info);
         if (! this.remote.connected) {
           if (info.authURL) {
-            this.authorize(info.authURL);
+            if (typeof token === 'undefined') {
+              // Normal authorization step; the default way to connect
+              this.authorize(info.authURL);
+            } else if (typeof token === 'string') {
+              // Token supplied directly by app/developer/user
+              RemoteStorage.log('Skipping authorization sequence and connecting with known token');
+              this.remote.configure({ token: token });
+            } else {
+              throw new Error("Supplied bearer token must be a string");
+            }
           } else {
-            // In lieu of an excplicit authURL, assume that the browser
-            // and server handle any authorization needs; for instance,
-            // TLS may trigger the browser to use a client certificate,
-            // or a 401 Not Authorized response may make the browser
-            // send a Kerberos ticket using the SPNEGO method.
+            // In lieu of an excplicit authURL, assume that the browser and
+            // server handle any authorization needs; for instance, TLS may
+            // trigger the browser to use a client certificate, or a 401 Not
+            // Authorized response may make the browser send a Kerberos ticket
+            // using the SPNEGO method.
             this.impliedauth();
           }
         }
@@ -15435,8 +14585,8 @@ if (typeof XMLHttpRequest === 'undefined') {
      *
      * Parameters:
      *   type - string, either 'googledrive' or 'dropbox'
-     *   keys - object, with one string field; 'client_id' for GoogleDrive, or
-     *          'api_key' for Dropbox.
+     *   keys - object, with one string field; 'clientId' for GoogleDrive, or
+     *          'appKey' for Dropbox.
      *
      */
     setApiKeys: function (type, keys) {
@@ -15789,6 +14939,9 @@ if (typeof XMLHttpRequest === 'undefined') {
 })(typeof(window) !== 'undefined' ? window : global);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],"/home/basti/src/remotestorage/modules/node_modules/xhr2/lib/browser.js":[function(require,module,exports){
+module.exports = XMLHttpRequest;
+
 },{}],"/home/basti/src/remotestorage/modules/node_modules/xmlhttprequest/lib/XMLHttpRequest.js":[function(require,module,exports){
 (function (process,Buffer){
 /**
@@ -16394,39 +15547,41 @@ exports.XMLHttpRequest = function() {
 };
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"_process":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/process/browser.js","buffer":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/buffer/index.js","child_process":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/lib/_empty.js","fs":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/lib/_empty.js","http":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/http-browserify/index.js","https":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/https-browserify/index.js","url":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/url/url.js"}],"/home/basti/src/remotestorage/modules/src/messages-irc.js":[function(require,module,exports){
+},{"_process":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/process/browser.js","buffer":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/buffer/index.js","child_process":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/lib/_empty.js","fs":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/lib/_empty.js","http":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/http-browserify/index.js","https":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/https-browserify/index.js","url":"/home/basti/src/remotestorage/modules/node_modules/grunt-browserify/node_modules/browserify/node_modules/url/url.js"}],"/home/basti/src/remotestorage/modules/src/chat-messages.js":[function(require,module,exports){
+"use strict";
+
+var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
+
 /**
  * File: Messages (IRC)
  *
  * Maintainer:      - Sebastian Kippe <sebastian@kip.pe>
- * Version:         - 0.1.0
+ * Version:         - 0.3.0
  *
  * This module stores IRC messages in daily archive files.
  */
 
-// TODO only load in node.js
-// if (isNodeJs) {
-"use strict";
+if (typeof exports !== "undefined" && undefined.exports !== exports) {
+  // Load remoteStorage from npm package when in node.js
+  var RemoteStorage = require("remotestoragejs");
+}
 
-RemoteStorage = require("remotestoragejs");
-// }
-
-RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient) {
+RemoteStorage.defineModule("chat-messages", function (privateClient, publicClient) {
 
   /**
-   * Schema: messages-irc/daily
+   * Schema: chat-messages/daily
    *
-   * Represents one day of IRC messages (in UTC)
+   * Represents one day of chat messages
    *
    * Example:
    *
    * (start code)
    * {
    *   "@context": "https://kosmos.org/ns/v1",
-   *   "@id": "messages/irc/freenode/kosmos/",
+   *   "@id": "chat-messages/irc/freenode/channels/kosmos/",
    *   "@type": "ChatChannel",
    *   "name": "#kosmos",
-   *   "ircURI": "irc://irc.freenode.net/#kosmos",
+   *   "ircURI": "irc://irc.freenode.net/kosmos",
    *   "today":  {
    *     "@id": "2015/01/01",
    *     "@type": "ChatLog",
@@ -16443,7 +15598,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
    * (end code)
    */
 
-  privateClient.declareType("daily-archive", "https://kosmos.org/ns/v1", {
+  var archiveSchema = {
     type: "object",
     properties: {
       "@context": {
@@ -16453,7 +15608,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       },
       "@id": {
         type: "string",
-        "default": "messages-irc/freenode/kosmos/"
+        required: true
       },
       "@type": {
         type: "string",
@@ -16461,7 +15616,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         "enum": ["ChatChannel"]
       },
       name: {
-        type: "string"
+        type: "string",
+        required: true
       },
       ircURI: {
         type: "string",
@@ -16472,7 +15628,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
         properties: {
           "@id": {
             type: "string",
-            pattern: "^[0-9]{4}/[0-9]{2}/[0-9]{2}$"
+            pattern: "^[0-9]{4}/[0-9]{2}/[0-9]{2}$",
+            required: true
           },
           "@type": {
             type: "string",
@@ -16485,14 +15642,17 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
             pattern: "^InstantMessage$"
           },
           previous: {
-            type: "string"
+            type: "string",
+            pattern: "^[0-9]{4}/[0-9]{2}/[0-9]{2}$"
           },
           next: {
-            type: "string"
+            type: "string",
+            pattern: "^[0-9]{4}/[0-9]{2}/[0-9]{2}$"
           },
           messages: {
             type: "array",
             uniqueItems: true,
+            required: true,
             items: {
               type: "object",
               properties: {
@@ -16508,7 +15668,7 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
                 },
                 type: "string",
                 "default": "text",
-                "enum": ["text", "join", "leave"]
+                "enum": ["text", "join", "leave", "action"]
               }
             }
           }
@@ -16516,7 +15676,10 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
       }
     },
     required: []
-  });
+  };
+
+  privateClient.declareType("daily-archive", "https://kosmos.org/ns/v1", archiveSchema);
+  publicClient.declareType("daily-archive", "https://kosmos.org/ns/v1", archiveSchema);
 
   /**
    * Class: DailyArchive
@@ -16540,8 +15703,8 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     if (typeof options !== "object") {
       throw "options must be an object";
     }
-    if (typeof options.network !== "object" || typeof options.network.name !== "string" || typeof options.network.ircURI !== "string") {
-      throw "network must be an object containing server \"name\" and \"ircURI\"";
+    if (typeof options.server !== "object" || typeof options.server.type !== "string" || typeof options.server.name !== "string") {
+      throw "server must be an object containing at least server \"type\" and \"name\"";
     }
     if (typeof options.channelName !== "string") {
       throw "channelName must be a string";
@@ -16554,15 +15717,16 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     }
 
     /**
-     * Property: network
+     * Property: server
      *
-     * Contains information about the IRC network
+     * Contains information about the chat server/network
      *
      * Properties:
-     *   name - Shortname/id of network (e.g. "freenode")
-     *   ircURI - IRC URI of network (e.g. "irc://irc.freenode.net/")
+     *   type - Type of server/protocol (e.g. "irc", "xmpp", "campfire", "slack")
+     *   name - Shortname/id of network/server (e.g. "freenode")
+     *   ircURI - (optional) IRC URI of network (e.g. "irc://irc.freenode.net/")
      */
-    this.network = options.network;
+    this.server = options.server;
 
     /**
      * Property: channelName
@@ -16600,89 +15764,323 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
     this.dateId = this.parsedDate.year + "/" + this.parsedDate.month + "/" + this.parsedDate.day;
 
     /**
-     * Property: messages
+     * Property: path
      *
-     * An array holding all messages of the day
+     * Document path of the archive file
      */
-    this.messages = [];
+    if (this.channelName.match(/^#/)) {
+      var channelName = this.channelName.replace(/#/, "");
+      this.path = this.server.name + "/channels/" + channelName + "/" + this.dateId;
+    } else {
+      this.path = this.server.name + "/users/" + this.channelName + "/" + this.dateId;
+    }
+
+    /**
+     * Property: client
+     *
+     * Public or private BaseClient, depending on isPublic
+     */
+    this.client = this.isPublic ? publicClient : privateClient;
   };
 
   DailyArchive.prototype = {
     /*
      * Method: addMessage
      *
-     * Parameters:
+     * Parameters (object):
      *   timestamp - Timestamp of the message
      *   from      - The sender of the message
      *   text      - The message itself
-     *   type      - Type of message (one of text, join, leave)
+     *   type      - Type of message (one of text, join, leave, action)
      */
-    addMessage: function addMessage(obj) {
-      console.log("addMessage", obj);
-      var message = {
-        timestamp: obj.timestamp,
-        from: obj.from,
-        text: obj.text || "",
-        type: obj.type || "text"
-      };
+    addMessage: function addMessage(message) {
+      var _this = this;
 
-      this.messages.push(message);
-      this.sync();
+      if (this.isPublic && !this.channelName.match(/^#/)) {
+        return false;
+      }
+
+      message.type = message.type || "text";
+
+      return this.client.getObject(this.path).then(function (archive) {
+        if (typeof archive === "object") {
+          _this._updateDocument(archive, message);
+        } else {
+          _this._createDocument(message);
+        }
+      });
     },
 
     /*
-     * Method: buildArchiveObject
+     * Method: addMessages
+     *
+     * Like <addMessage>, but for multiple messages at once. Useful for bulk
+     * imports of messages.
+     *
+     * Parameters:
+     *   messages   - Array of message objects (see params for addMessage)
+     *   overwrite  - If true, creates a new archive file and overwrites the
+     *                old one. Defaults to false.
+     */
+    addMessages: function addMessage(messages, overwrite) {
+      var _this = this;
+
+      if (this.isPublic && !this.channelName.match(/^#/)) {
+        return false;
+      }
+
+      overwrite = overwrite || false;
+
+      messages.forEach(function (message) {
+        message.type = message.type || "text";
+      });
+
+      if (overwrite) {
+        return this._createDocument(messages);
+      } else {
+        return this.client.getObject(this.path).then(function (archive) {
+          if (typeof archive === "object") {
+            return _this._updateDocument(archive, messages);
+          } else {
+            return _this._createDocument(messages);
+          }
+        });
+      }
+    },
+
+    /*
+     * Method: remove
+     *
+     * Deletes the entire archive document from storage
+     */
+    remove: function remove() {
+      return this.client.remove(this.path);
+    },
+
+    /*
+     * Method: _updateDocument
+     *
+     * Updates and writes an existing archive document
+     */
+    _updateDocument: function _updateDocument(archive, messages) {
+      RemoteStorage.log("[chat-messages] Updating archive document", archive);
+
+      if (Array.isArray(messages)) {
+        messages.forEach(function (message) {
+          archive.today.messages.push(message);
+        });
+      } else {
+        archive.today.messages.push(messages);
+      }
+
+      return this._sync(archive);
+    },
+
+    /*
+     * Method: _createDocument
+     *
+     * Creates and writes a new archive document
+     */
+    _createDocument: function _createDocument(messages) {
+      var _this = this;
+
+      RemoteStorage.log("[chat-messages] Creating new archive document");
+      var archive = this._buildArchiveObject();
+
+      if (Array.isArray(messages)) {
+        messages.forEach(function (message) {
+          archive.today.messages.push(message);
+        });
+      } else {
+        archive.today.messages.push(messages);
+      }
+
+      return this._updatePreviousArchive().then(function (previous) {
+        if (typeof previous === "object") {
+          archive.today.previous = previous.today["@id"];
+        }
+        return _this._sync(archive);
+      });
+    },
+
+    /*
+     * Method: _buildArchiveObject
      *
      * Builds the object to be stored in remote storage
      */
-    buildArchiveObject: function buildArchiveObject() {
-      var channelNameWithoutHash = this.channelName.replace(/^#/, "");
-
+    _buildArchiveObject: function _buildArchiveObject() {
+      var id;
+      if (this.channelName.match(/^#/)) {
+        var channelName = this.channelName.replace(/#/, "");
+        id = "chat-messages/" + this.server.type + "/" + this.server.name + "/channels/" + channelName + "/";
+      } else {
+        id = "chat-messages/" + this.server.name + "/users/" + this.channelName + "/";
+      }
       return {
-        "@id": "messages-irc/" + this.network.name + "/" + channelNameWithoutHash + "/",
+        "@id": id,
         "@type": "ChatChannel",
         name: this.channelName,
-        ircURI: this.network.ircURI + "/" + this.channelName,
+        ircURI: this.server.ircURI + "/" + this.channelName.replace(/#/, ""),
         today: {
           "@id": this.dateId,
           "@type": "ChatLog",
           messageType: "InstantMessage",
-          previous: "",
-          next: "",
-          messages: this.messages
+          messages: []
         }
       };
     },
 
     /*
-     * Method: sync
+     * Method: _updatePreviousArchive
      *
-     * Find or create archive file, update it, and save it to the storage
+     * Finds the previous archive document and updates its today.next value
      */
-    sync: function sync() {
-      var client = this.isPublic ? publicClient : privateClient;
-      var path = this.network.name + "/" + this.channelName.replace(/^#/, "") + "/" + this.dateId;
+    _updatePreviousArchive: function _updatePreviousArchive() {
+      var _this = this;
 
-      var obj = this.buildArchiveObject();
-      console.log("Writing archive object", obj);
+      return this._findPreviousArchive().then(function (archive) {
+        if (typeof archive === "object" && archive.today) {
+          var _ret = (function () {
+            archive.today.next = _this.dateId;
+            var path = _this.path.substring(0, _this.path.length - _this.dateId.length) + archive.today["@id"];
 
-      privateClient.storeObject("daily-archive", path, obj).then(function () {
-        console.log("Archive written to remote storage");
+            return {
+              v: _this.client.storeObject("daily-archive", path, archive).then(function () {
+                RemoteStorage.log("[chat-messages] Previous archive written to remote storage", path, archive);
+                return archive;
+              })
+            };
+          })();
+
+          if (typeof _ret === "object") return _ret.v;
+        } else {
+          RemoteStorage.log("[chat-messages] Previous archive not found");
+          return false;
+        }
+      });
+    },
+
+    /*
+     * Method: _findPreviousArchive
+     *
+     * Returns the previous archive document
+     */
+    _findPreviousArchive: function _findPreviousArchive() {
+      var _this = this;
+
+      var monthPath = this.path.substring(0, this.path.length - 2);
+      var yearPath = this.path.substring(0, this.path.length - 5);
+      var basePath = this.path.substring(0, this.path.length - 10);
+
+      return this.client.getListing(monthPath).then(function (listing) {
+        var days = Object.keys(listing).map(function (i) {
+          return parseInt(i);
+        }).map(function (i) {
+          return i < parseInt(_this.parsedDate.day) ? i : null;
+        }).filter(function (i) {
+          return i != null;
+        });
+
+        if (days.length > 0) {
+          var day = pad(Math.max.apply(Math, _toConsumableArray(days)).toString());
+          return _this.client.getObject(monthPath + day);
+        }
+
+        // Find last day in previous month
+        return _this.client.getListing(yearPath).then(function (listing) {
+          var months = Object.keys(listing).map(function (i) {
+            return parseInt(i.substr(0, 2));
+          }).map(function (i) {
+            return i < parseInt(_this.parsedDate.month) ? i : null;
+          }).filter(function (i) {
+            return i != null;
+          });
+
+          if (months.length > 0) {
+            var _ret = (function () {
+              var month = pad(Math.max.apply(Math, _toConsumableArray(months)).toString());
+
+              return {
+                v: _this.client.getListing(yearPath + month + "/").then(function (listing) {
+                  var days = Object.keys(listing).map(function (i) {
+                    return parseInt(i);
+                  });
+                  var day = pad(Math.max.apply(Math, _toConsumableArray(days)).toString());
+                  return _this.client.getObject(yearPath + month + "/" + day);
+                })
+              };
+            })();
+
+            if (typeof _ret === "object") return _ret.v;
+          } else {
+            // Find last month and day in previous year
+            return _this.client.getListing(basePath).then(function (listing) {
+
+              var years = Object.keys(listing).map(function (i) {
+                return parseInt(i.substr(0, 4));
+              }).map(function (i) {
+                return i < parseInt(_this.parsedDate.year) ? i : null;
+              }).filter(function (i) {
+                return i != null;
+              });
+
+              if (years.length > 0) {
+                var _ret2 = (function () {
+                  var year = Math.max.apply(Math, _toConsumableArray(years)).toString();
+
+                  return {
+                    v: _this.client.getListing(basePath + year + "/").then(function (listing) {
+                      var months = Object.keys(listing).map(function (i) {
+                        return parseInt(i.substr(0, 2));
+                      });
+                      var month = pad(Math.max.apply(Math, _toConsumableArray(months)).toString());
+
+                      return _this.client.getListing(basePath + year + "/" + month + "/").then(function (listing) {
+                        var days = Object.keys(listing).map(function (i) {
+                          return parseInt(i);
+                        });
+                        var day = pad(Math.max.apply(Math, _toConsumableArray(days)).toString());
+                        return _this.client.getObject(basePath + year + "/" + month + "/" + day);
+                      });
+                    })
+                  };
+                })();
+
+                if (typeof _ret2 === "object") return _ret2.v;
+              } else {
+                return false;
+              }
+            });
+          }
+        });
+      });
+    },
+
+    /*
+     * Method: _sync
+     *
+     * Write archive document
+     */
+    _sync: function _sync(obj) {
+      RemoteStorage.log("[chat-messages] Writing archive object", obj);
+
+      return this.client.storeObject("daily-archive", this.path, obj).then(function () {
+        RemoteStorage.log("[chat-messages] Archive written to remote storage");
       }, function (error) {
-        console.log("Error trying to store object", error);
+        RemoteStorage.log("[chat-messages] Error trying to store object", error);
       });
     }
   };
 
-  var parseDate = function parseDate(date) {
-    var pad = function pad(num) {
-      num = String(num);
-      if (num.length === 1) {
-        num = "0" + num;
-      }
-      return num;
-    };
+  var pad = function pad(num) {
+    num = String(num);
+    if (num.length === 1) {
+      num = "0" + num;
+    }
+    return num;
+  };
 
+  var parseDate = function parseDate(date) {
     return {
       year: date.getUTCFullYear(),
       month: pad(date.getUTCMonth() + 1),
@@ -16691,11 +16089,13 @@ RemoteStorage.defineModule("messages-irc", function (privateClient, publicClient
   };
 
   var exports = {
-    DailyArchive: DailyArchive
+    DailyArchive: DailyArchive,
+    privateClient: privateClient,
+    publicClient: publicClient
   };
 
   // Return public functions
   return { exports: exports };
 });
 
-},{"remotestoragejs":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node-main.js"}]},{},["/home/basti/src/remotestorage/modules/src/messages-irc.js"]);
+},{"remotestoragejs":"/home/basti/src/remotestorage/modules/node_modules/remotestoragejs/node-main.js"}]},{},["/home/basti/src/remotestorage/modules/src/chat-messages.js"]);
