@@ -135,9 +135,26 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
    *
    * A daily archive stores IRC messages by day.
    *
-   * Parameters:
-   *   options - (Object) See class properties below for object properties
-   *   TODO not all props are constructor args
+   * Parameters (object):
+   *   server      - Chat server info (see <DailyArchive.server>)
+   *   channelName - Name of room/channel
+   *   date        - Date of archive day
+   *   isPublic    - Store logs in public folder (defaults to false)
+   *
+   * Example:
+   *
+   * (start code)
+   * var archive = new chatMessages.DailyArchive({
+   *   server: {
+   *     type: 'irc',
+   *     name: 'freenode',
+   *     ircURI: 'irc://irc.freenode.net'
+   *   },
+   *   channelName: '#kosmos',
+   *   date: new Date(),
+   *   isPublic: true
+   * });
+   * (end code)
    */
   // TODO move to common module for all messages modules
   var DailyArchive = function DailyArchive(options) {
