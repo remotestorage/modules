@@ -95,7 +95,6 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
           },
           "messages": {
             "type": "array",
-            "uniqueItems": true,
             "required": true,
             "items": {
               "type": "object",
@@ -286,9 +285,9 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
 
       return this.client.getObject(this.path).then((archive) => {
         if (typeof archive === 'object') {
-          this._updateDocument(archive, message);
+          return this._updateDocument(archive, message);
         } else {
-          this._createDocument(message);
+          return this._createDocument(message);
         }
       });
     },
@@ -374,8 +373,8 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
       if (this.previous || this.next) {
         // The app is handling previous/next keys itself
         // That includes setting 'next' in the previous log file
-        if (this.previous) { archive.today.previous = this.previous };
-        if (this.next)     { archive.today.next = this.next };
+        if (this.previous) { archive.today.previous = this.previous; }
+        if (this.next)     { archive.today.next = this.next; }
         return this._sync(archive);
       } else {
         // Find and update previous archive, set 'previous' on this one
@@ -511,8 +510,10 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
 
       return this.client.storeObject('daily-archive', this.path, obj).then(function(){
         RemoteStorage.log('[chat-messages] Archive written to remote storage');
+        return true;
       },function(error){
-        RemoteStorage.log('[chat-messages] Error trying to store object', error);
+        console.log('[chat-messages] Error trying to store object', error);
+        return error;
       });
     }
   };
