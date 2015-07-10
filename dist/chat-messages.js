@@ -15553,16 +15553,16 @@ exports.XMLHttpRequest = function() {
 var _toConsumableArray = function (arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } };
 
 /**
- * File: Messages (IRC)
+ * File: Chat Messages
  *
  * Maintainer:      - Sebastian Kippe <sebastian@kip.pe>
- * Version:         - 0.3.0
+ * Version:         - 0.5.0
  *
- * This module stores IRC messages in daily archive files.
+ * This module stores chat messages in daily archive files.
  */
 
-if (typeof exports !== "undefined" && undefined.exports !== exports) {
-  // Load remoteStorage from npm package when in node.js
+var isNode = new Function("try {return this===global;}catch(e){return false;}");
+if (isNode) {
   var RemoteStorage = require("remotestoragejs");
 }
 
@@ -15651,7 +15651,6 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
           },
           messages: {
             type: "array",
-            uniqueItems: true,
             required: true,
             items: {
               type: "object",
@@ -15686,9 +15685,30 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
    *
    * A daily archive stores IRC messages by day.
    *
-   * Parameters:
-   *   options - (Object) See class properties below for object properties
-   *   TODO not all props are constructor args
+   * Parameters (object):
+   *   server      - Chat server info (see <DailyArchive.server>)
+   *   channelName - Name of room/channel
+   *   date        - Date of archive day
+   *   isPublic    - Store logs in public folder (defaults to false)
+   *   previous    - Date of previous log file as YYYY/MM/DD;
+   *                 looked up automatically when not given
+   *   next        - Date of next log file as YYYY/MM/DD;
+   *                 looked up automatically when not given
+   *
+   * Example:
+   *
+   * (start code)
+   * var archive = new chatMessages.DailyArchive({
+   *   server: {
+   *     type: 'irc',
+   *     name: 'freenode',
+   *     ircURI: 'irc://irc.freenode.net'
+   *   },
+   *   channelName: '#kosmos',
+   *   date: new Date(),
+   *   isPublic: true
+   * });
+   * (end code)
    */
   // TODO move to common module for all messages modules
   var DailyArchive = function DailyArchive(options) {
@@ -15769,10 +15789,10 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      * Document path of the archive file
      */
     if (this.channelName.match(/^#/)) {
-      var channelName = this.channelName.replace(/#/, "");
-      this.path = this.server.name + "/channels/" + channelName + "/" + this.dateId;
+      var channelName = this.channelName.replace(/^#/, "");
+      this.path = "" + this.server.type + "/" + this.server.name + "/channels/" + channelName + "/" + this.dateId;
     } else {
-      this.path = this.server.name + "/users/" + this.channelName + "/" + this.dateId;
+      this.path = "" + this.server.type + "/" + this.server.name + "/users/" + this.channelName + "/" + this.dateId;
     }
 
     /**
@@ -15781,6 +15801,20 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      * Public or private BaseClient, depending on isPublic
      */
     this.client = this.isPublic ? publicClient : privateClient;
+
+    /**
+     * Property: previous
+     *
+     * Date of previous log file as YYYY/MM/DD
+     */
+    this.previous = options.previous;
+
+    /**
+     * Property: next
+     *
+     * Date of next log file as YYYY/MM/DD
+     */
+    this.next = options.next;
   };
 
   DailyArchive.prototype = {
@@ -15797,16 +15831,16 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
       var _this = this;
 
       if (this.isPublic && !this.channelName.match(/^#/)) {
-        return false;
+        return Promise.resolve(false);
       }
 
       message.type = message.type || "text";
 
       return this.client.getObject(this.path).then(function (archive) {
         if (typeof archive === "object") {
-          _this._updateDocument(archive, message);
+          return _this._updateDocument(archive, message);
         } else {
-          _this._createDocument(message);
+          return _this._createDocument(message);
         }
       });
     },
@@ -15826,7 +15860,7 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
       var _this = this;
 
       if (this.isPublic && !this.channelName.match(/^#/)) {
-        return false;
+        return Promise.resolve(false);
       }
 
       overwrite = overwrite || false;
@@ -15895,12 +15929,25 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
         archive.today.messages.push(messages);
       }
 
-      return this._updatePreviousArchive().then(function (previous) {
-        if (typeof previous === "object") {
-          archive.today.previous = previous.today["@id"];
+      if (this.previous || this.next) {
+        // The app is handling previous/next keys itself
+        // That includes setting 'next' in the previous log file
+        if (this.previous) {
+          archive.today.previous = this.previous;
         }
-        return _this._sync(archive);
-      });
+        if (this.next) {
+          archive.today.next = this.next;
+        }
+        return this._sync(archive);
+      } else {
+        // Find and update previous archive, set 'previous' on this one
+        return this._updatePreviousArchive().then(function (previous) {
+          if (typeof previous === "object") {
+            archive.today.previous = previous.today["@id"];
+          }
+          return _this._sync(archive);
+        });
+      }
     },
 
     /*
@@ -16066,8 +16113,10 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
 
       return this.client.storeObject("daily-archive", this.path, obj).then(function () {
         RemoteStorage.log("[chat-messages] Archive written to remote storage");
+        return true;
       }, function (error) {
-        RemoteStorage.log("[chat-messages] Error trying to store object", error);
+        console.log("[chat-messages] Error trying to store object", error);
+        return error;
       });
     }
   };

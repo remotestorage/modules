@@ -279,7 +279,9 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      *   type      - Type of message (one of text, join, leave, action)
      */
     addMessage: function addMessage(message) {
-      if (this.isPublic && !this.channelName.match(/^#/)) { return false; }
+      if (this.isPublic && !this.channelName.match(/^#/)) {
+        return Promise.resolve(false);
+      }
 
       message.type = message.type || 'text';
 
@@ -304,7 +306,9 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      *                old one. Defaults to false.
      */
     addMessages: function addMessage(messages, overwrite) {
-      if (this.isPublic && !this.channelName.match(/^#/)) { return false; }
+      if (this.isPublic && !this.channelName.match(/^#/)) {
+        return Promise.resolve(false);
+      }
 
       overwrite = overwrite || false;
 
