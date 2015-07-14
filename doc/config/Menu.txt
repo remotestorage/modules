@@ -28,7 +28,7 @@ Format: 1.52
 # These are indexes you deleted, so Natural Docs will not add them again
 # unless you remove them from this line.
 
-Don't Index: Classes, Properties, Files, Functions, Variables, General
+Don't Index: Files, Functions, General, Variables, Classes, Properties
 
 
 # --------------------------------------------------------------------------
@@ -57,6 +57,7 @@ Group: Modules  {
 
    File: Apps  (apps.js)
    File: Bookmarks  (bookmarks.js)
+   File: Chat Messages  (chat-messages.js)
    File: Contacts  (contacts.js)
    File: Documents  (documents.js)
    File: Email Credentials  (email-credentials.js)
@@ -65,7 +66,6 @@ Group: Modules  {
    File: Fitness  (fitness.js)
    File: IRC Credentials  (irc-credentials.js)
    File: Messages  (messages.js)
-   File: Messages &lparen;IRC&rparen;  (messages-irc.js)
    File: PGP  (pgp.js)
    File: Pictures  (pictures.js)
    File: Shares  (shares.js)
