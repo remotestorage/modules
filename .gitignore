@@ -2,3 +2,4 @@ node_modules/
 doc/code/
 doc/config/Data/
 tmp/
+*.log
