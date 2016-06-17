@@ -119,9 +119,9 @@ RemoteStorage.defineModule("documents", function (privateClient, publicClient) {
     },
 
     /**
-     * Method: remove
+     * Method: erase
      *
-     * Remove a document for a specified id.
+     * Erase a document for a specified id.
      *
      * Parameters:
      *   id  - the id the document is at.
@@ -131,7 +131,7 @@ RemoteStorage.defineModule("documents", function (privateClient, publicClient) {
      *   After that, the change will propagate from local to remote through
      *   asynchronous synchronization.
      */
-    remove: function remove(id) {
+    erase: function erase(id) {
       return this.remove(id.toString());
     },
 
