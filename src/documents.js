@@ -48,7 +48,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      * Returns:
      *   A privateClient scoped to the given path
      *    and extended with the listMethods.
-     *   It also supports all <BaseClient methods at http://remotestoragejs.com/doc/code/files/baseclient-js.html>
+     *   It also supports all <BaseClient methods at https://remotestorage.github.io/remotestorage.js/files/baseclient-js.html>
      */
     privateList: function(path) {
       return privateClient.scope(path + "/").extend(listMethods).cache('', 'ALL');
@@ -66,7 +66,7 @@ RemoteStorage.defineModule("documents", function(privateClient, publicClient) {
      * Returns:
      *   A publicClient scoped to the given path
      *    and extended with the listMethods.
-     *   It also supports all <BaseClient methods at http://remotestoragejs.com/doc/code/files/baseclient-js.html>
+     *   It also supports all <BaseClient methods at https://remotestorage.github.io/remotestorage.js/files/baseclient-js.html>
      */
     publicList: function(path) {
       return publicClient.scope(path + "/").extend(listMethods).cache('', 'ALL');
