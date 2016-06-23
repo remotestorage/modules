@@ -119,23 +119,6 @@ RemoteStorage.defineModule("documents", function (privateClient, publicClient) {
     },
 
     /**
-     * Method: remove
-     *
-     * Remove a document for a specified id.
-     *
-     * Parameters:
-     *   id  - the id the document is at.
-     *
-     * Returns:
-     *   A promise, which will be fulfilled when the change was made locally.
-     *   After that, the change will propagate from local to remote through
-     *   asynchronous synchronization.
-     */
-    remove: function remove(id) {
-      return this.remove(id.toString());
-    },
-
-    /**
      * Method: get
      *
      * Get a document.
