@@ -12,7 +12,7 @@
   "dependencies": {
     "bluebird": "2.x",
     "localStorage": "^1.0.3",
-    "remotestoragejs": "/home/basti/src/remotestorage/remotestorage.js/",
+    "remotestoragejs": "^0.13.0",
     "xmlhttprequest": "*"
   },
   "devDependencies": {
