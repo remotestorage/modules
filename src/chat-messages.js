@@ -2,7 +2,7 @@
  * File: Chat Messages
  *
  * Maintainer:      - Sebastian Kippe <sebastian@kip.pe>
- * Version:         - 0.5.0
+ * Version:         - 0.6.0
  *
  * This module stores chat messages in daily archive files.
  */
@@ -22,7 +22,7 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
    * (start code)
    * {
    *   "@context": "https://kosmos.org/ns/v1",
-   *   "@id": "chat-messages/irc/freenode/channels/kosmos/",
+   *   "@id": "chat-messages/freenode/channels/kosmos/",
    *   "@type": "ChatChannel",
    *   "name": "#kosmos",
    *   "ircURI": "irc://irc.freenode.net/kosmos",
@@ -64,6 +64,10 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
         "required": true
       },
       "ircURI": {
+        "type": "string",
+        "format": "uri"
+      },
+      "xmppURI": {
         "type": "string",
         "format": "uri"
       },
@@ -144,7 +148,7 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
    *   next        - Date of next log file as YYYY/MM/DD;
    *                 looked up automatically when not given
    *
-   * Example:
+   * Example for IRC:
    *
    * (start code)
    * var archive = new chatMessages.DailyArchive({
@@ -158,8 +162,22 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
    *   isPublic: true
    * });
    * (end code)
+   *
+   * Example for XMPP:
+   *
+   * (start code)
+   * var archive = new chatMessages.DailyArchive({
+   *   server: {
+   *     type: 'xmpp',
+   *     name: '5apps',
+   *     xmppMUC: 'muc.5apps.com'
+   *   },
+   *   channelName: 'watercooler',
+   *   date: new Date(),
+   *   isPublic: false
+   * });
+   * (end code)
    */
-  // TODO move to common module for all messages modules
   var DailyArchive = function DailyArchive(options) {
     //
     // Defaults
@@ -194,8 +212,9 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      *
      * Properties:
      *   type - Type of server/protocol (e.g. "irc", "xmpp", "campfire", "slack")
-     *   name - Shortname/id of network/server (e.g. "freenode")
+     *   name - Shortname/id/alias of network/server (e.g. "freenode", "mycompanyname")
      *   ircURI - (optional) IRC URI of network (e.g. "irc://irc.freenode.net/")
+     *   xmppMUC - (optional) XMPP MUC service host (e.g. "conference.jabber.org")
      */
     this.server = options.server;
 
@@ -239,11 +258,20 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      *
      * Document path of the archive file
      */
-    if (this.channelName.match(/^#/)) {
-      var channelName = this.channelName.replace(/^#/,'');
-      this.path = `${this.server.type}/${this.server.name}/channels/${channelName}/${this.dateId}`;
-    } else {
-      this.path = `${this.server.type}/${this.server.name}/users/${this.channelName}/${this.dateId}`;
+    switch (this.server.type) {
+      case 'irc':
+        if (this.channelName.match(/^#/)) {
+          // normal chatroom
+          var channelName = this.channelName.replace(/^#/,'');
+          this.path = `${this.server.name}/channels/${channelName}/${this.dateId}`;
+        } else {
+          // user direct message
+          this.path = `${this.server.name}/users/${this.channelName}/${this.dateId}`;
+        }
+        break;
+      default:
+        this.path = `${this.server.name}/${this.channelName}/${this.dateId}`;
+        break;
     }
 
     /**
@@ -397,18 +425,12 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
      * Builds the object to be stored in remote storage
      */
     _buildArchiveObject: function() {
-      var id;
-      if (this.channelName.match(/^#/)) {
-        var channelName = this.channelName.replace(/#/,'');
-        id = "chat-messages/"+this.server.type+"/"+this.server.name+"/channels/"+channelName+"/";
-      } else {
-        id = "chat-messages/"+this.server.name+"/users/"+this.channelName+"/";
-      }
-      return {
-        "@id": id,
+      let roomName = this.channelName.replace(/#/,'');
+
+      let archive = {
+        "@id": "chat-messages/"+this.server.name+"/channels/"+roomName+"/",
         "@type": "ChatChannel",
         "name": this.channelName,
-        "ircURI": this.server.ircURI+"/"+this.channelName.replace(/#/,''),
         "today": {
           "@id": this.dateId,
           "@type": "ChatLog",
@@ -416,6 +438,20 @@ RemoteStorage.defineModule("chat-messages", function (privateClient, publicClien
           "messages": []
         }
       };
+
+      switch (this.server.type) {
+        case 'irc':
+          if (!this.channelName.match(/^#/)) {
+            archive["@id"] = "chat-messages/"+this.server.name+"/users/"+this.channelName+"/";
+          }
+          archive["ircURI"] = this.server.ircURI+"/"+roomName;
+          break;
+        case 'xmpp':
+          archive["xmppURI"] = `xmpp:${this.channelName}@${this.server.xmppMUC}`;
+          break;
+      }
+
+      return archive;
     },
 
     /*
