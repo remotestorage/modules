@@ -10,7 +10,7 @@
   "license": "MIT",
   "homepage": "http://github.com/remotestorage/modules",
   "dependencies": {
-    "remotestorage": "^0.11.0",
+    "remotestorage": "^0.14.0",
     "bluebird": "2.x"
   }
 }
