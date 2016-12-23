@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/home/basti/src/remotestorage/modules/src/bookmarks.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
 var _interopRequire = function (obj) { return obj && obj.__esModule ? obj["default"] : obj; };
@@ -207,7 +207,7 @@ RemoteStorage.defineModule("bookmarks", function (privateClient, publicClient) {
   return { exports: bookmarks };
 });
 
-},{"./utils/md5sum":"/home/basti/src/remotestorage/modules/src/utils/md5sum.js"}],"/home/basti/src/remotestorage/modules/src/utils/md5sum.js":[function(require,module,exports){
+},{"./utils/md5sum":2}],2:[function(require,module,exports){
 "use strict";
 
 module.exports = function (str) {
@@ -378,4 +378,4 @@ module.exports = function (str) {
   return md5(str);
 };
 
-},{}]},{},["/home/basti/src/remotestorage/modules/src/bookmarks.js"]);
+},{}]},{},[1]);
