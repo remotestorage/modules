@@ -1,3 +1,0 @@
-File: Overview
-
-Welcome to the remoteStorage.js module documentation.
